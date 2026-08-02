@@ -1,0 +1,1476 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>META EARN</title>
+<link rel="icon" id="favicon-link" href="">
+<meta name="theme-color" content="#F5F7FB">
+
+<link rel="preconnect" href="https://www.gstatic.com">
+<link rel="preconnect" href="https://telegram.org">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://meta-buyer-zone-default-rtdb.firebaseio.com">
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  /* ===== META EARN design tokens — soft "eye shield" white theme ===== */
+  --bg:#F5F7FB;
+  --bg-2:#EBEEF5;
+  --elev-1:#FFFFFF;
+  --elev-2:#FFFFFF;
+  --glass:rgba(20,28,48,0.035);
+  --glass-hi:rgba(20,28,48,0.065);
+  --border:rgba(20,28,48,0.09);
+  --border-hi:rgba(20,28,48,0.15);
+  --track:rgba(20,28,48,0.08);
+  --text:#161B26;
+  --text-dim:#6B7280;
+  --text-dim2:#9AA1B4;
+
+  --violet:#7C5CFF;
+  --violet-2:#4C8DFF;
+  --teal:#12B79E;
+  --gold:#D6900E;
+  --danger:#E23F52;
+  --danger-bg:rgba(226,63,82,0.11);
+  --success:#1FAA6E;
+  --success-bg:rgba(31,170,110,0.11);
+  --warning:#D6900E;
+  --warning-bg:rgba(214,144,14,0.12);
+
+  --aurora:linear-gradient(135deg,#7C5CFF 0%,#4C8DFF 52%,#2DE0C6 100%);
+  --aurora-soft:linear-gradient(135deg,rgba(124,92,255,0.13),rgba(18,183,158,0.11));
+
+  --radius-sm:10px;
+  --radius-md:16px;
+  --radius-lg:22px;
+  --radius-xl:28px;
+
+  --shadow-sm:0 2px 8px rgba(20,28,48,0.05);
+  --shadow-md:0 10px 26px rgba(20,28,48,0.08);
+  --shadow-glow:0 10px 26px rgba(124,92,255,0.20);
+
+  --font-display:'Space Grotesk',sans-serif;
+  --font-body:'Inter',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;outline:none;margin:0;padding:0;}
+html,body{background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;font-family:var(--font-body);}
+body{padding-bottom:92px;position:relative;}
+button,input,select,textarea{font-family:var(--font-body);color:inherit;}
+button{cursor:pointer;border:none;background:none;}
+a{color:inherit;text-decoration:none;}
+.hidden{display:none!important;}
+::selection{background:var(--violet);color:#fff;}
+input,select,textarea{background:var(--elev-1);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;color:var(--text);font-size:14px;width:100%;transition:border-color .15s;}
+input:focus,select:focus,textarea:focus{border-color:var(--violet);}
+input::placeholder,textarea::placeholder{color:var(--text-dim2);}
+
+#ambient{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;}
+.orb{position:absolute;border-radius:50%;filter:blur(70px);opacity:.16;will-change:transform;}
+.orb1{width:280px;height:280px;background:var(--violet);top:-80px;left:-60px;animation:drift1 22s ease-in-out infinite;}
+.orb2{width:240px;height:240px;background:var(--teal);bottom:-60px;right:-50px;animation:drift2 26s ease-in-out infinite;}
+@keyframes drift1{0%,100%{transform:translate(0,0)}50%{transform:translate(40px,60px)}}
+@keyframes drift2{0%,100%{transform:translate(0,0)}50%{transform:translate(-30px,-50px)}}
+
+@keyframes riseUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes popIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+
+#loading{position:fixed;inset:0;background:
+    radial-gradient(circle at 50% 38%, rgba(124,92,255,0.07), transparent 55%),
+    var(--bg);
+  z-index:10000;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .55s ease, visibility .55s ease;}
+.load-ring-wrap{position:relative;width:112px;height:112px;display:flex;align-items:center;justify-content:center;}
+.load-halo{position:absolute;inset:-16px;border-radius:50%;background:var(--aurora);opacity:.10;filter:blur(26px);animation:haloPulse 2.6s ease-in-out infinite;}
+@keyframes haloPulse{0%,100%{opacity:.08;transform:scale(1)}50%{opacity:.20;transform:scale(1.08)}}
+.load-ring-wrap svg{position:absolute;inset:0;}
+.load-ring-wrap circle{fill:none;stroke-width:2.5;}
+.load-track{stroke:var(--track);}
+.load-arc{stroke:url(#auroraGrad);stroke-linecap:round;stroke-dasharray:76 400;transform-box:fill-box;transform-origin:center;animation:loadSpin 1.15s cubic-bezier(.5,0,.5,1) infinite;}
+@keyframes loadSpin{to{transform:rotate(360deg)}}
+.load-mark{position:relative;width:60px;height:60px;border-radius:18px;background:var(--aurora);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:21px;color:#fff;box-shadow:var(--shadow-glow);overflow:hidden;animation:markBreathe 2.8s ease-in-out infinite;}
+.load-mark img{width:100%;height:100%;object-fit:cover;}
+@keyframes markBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.load-title{margin-top:26px;font-family:var(--font-display);font-weight:700;font-size:16px;letter-spacing:4px;background:var(--aurora);-webkit-background-clip:text;background-clip:text;color:transparent;opacity:0;animation:loadTextIn .6s ease .15s forwards;}
+.load-sub{margin-top:7px;font-size:10.5px;font-weight:600;letter-spacing:1.5px;color:var(--text-dim2);text-transform:uppercase;opacity:0;animation:loadTextIn .6s ease .3s forwards;}
+@keyframes loadTextIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.load-bar{width:130px;height:3px;border-radius:3px;background:var(--track);margin-top:24px;overflow:hidden;opacity:0;animation:loadTextIn .6s ease .45s forwards;}
+.load-bar-fill{width:36%;height:100%;border-radius:3px;background:var(--aurora);animation:loadBarSlide 1.3s ease-in-out infinite;}
+@keyframes loadBarSlide{0%{transform:translateX(-120%)}50%{transform:translateX(70%)}100%{transform:translateX(240%)}}
+
+.gate-screen{position:fixed;inset:0;background:var(--bg);z-index:9000;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;animation:fadeIn .3s ease both;}
+.gate-icon{width:76px;height:76px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:34px;margin-bottom:18px;}
+.gate-icon.danger{background:var(--danger-bg);}
+.gate-icon.warn{background:var(--warning-bg);}
+.gate-title{font-family:var(--font-display);font-weight:700;font-size:19px;margin-bottom:8px;}
+.gate-title.danger{color:var(--danger);}
+.gate-title.warn{color:var(--gold);}
+.gate-text{font-size:13.5px;color:var(--text-dim);line-height:1.6;max-width:340px;}
+.gate-errbox{margin-top:18px;background:var(--danger-bg);border:1px solid rgba(255,93,108,.3);border-radius:var(--radius-md);padding:14px 16px;font-size:12.5px;color:var(--danger);max-width:360px;line-height:1.6;}
+.gate-list{margin-top:20px;display:flex;flex-direction:column;gap:10px;width:100%;max-width:340px;}
+
+#app{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:14px 14px 4px;}
+.header{display:flex;align-items:center;gap:10px;margin-bottom:14px;animation:riseUp .4s ease both;}
+.brand-mark{width:38px;height:38px;border-radius:11px;background:var(--aurora);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:15px;color:#fff;flex-shrink:0;box-shadow:var(--shadow-glow);overflow:hidden;}
+.brand-mark img{width:100%;height:100%;object-fit:cover;}
+.brand-name{font-family:var(--font-display);font-weight:700;font-size:16px;letter-spacing:.3px;}
+.brand-sub{font-size:9.5px;color:var(--text-dim2);letter-spacing:1.5px;font-weight:600;text-transform:uppercase;margin-top:1px;}
+.header-actions{margin-left:auto;display:flex;gap:8px;}
+.icon-btn{width:38px;height:38px;border-radius:12px;background:var(--glass);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .15s;}
+.icon-btn:active{transform:scale(.92);background:var(--glass-hi);}
+
+.balance-card{position:relative;background:linear-gradient(160deg,var(--elev-2) 0%,var(--elev-1) 100%);border:1px solid var(--border);border-radius:var(--radius-xl);padding:22px;margin-bottom:14px;overflow:hidden;box-shadow:var(--shadow-md);animation:riseUp .45s ease both;}
+.balance-card::before{content:'';position:absolute;top:-40%;right:-20%;width:220px;height:220px;background:var(--aurora-soft);border-radius:50%;filter:blur(40px);}
+.balance-top{display:flex;align-items:center;justify-content:space-between;position:relative;}
+.balance-label{font-size:10.5px;font-weight:700;letter-spacing:2px;color:var(--text-dim2);text-transform:uppercase;}
+.balance-figure{font-family:var(--font-mono);font-weight:700;font-size:34px;margin-top:6px;display:flex;align-items:baseline;gap:5px;}
+.balance-figure .cur{font-size:19px;color:var(--teal);}
+.ring-wrap{position:relative;width:64px;height:64px;flex-shrink:0;}
+.ring-wrap svg{width:100%;height:100%;transform:rotate(-90deg);}
+.ring-wrap circle{fill:none;stroke-width:5;}
+.ring-track{stroke:var(--track);}
+.ring-arc{stroke:url(#auroraGrad2);stroke-linecap:round;transition:stroke-dashoffset 1.1s cubic-bezier(.4,0,.2,1);}
+.ring-icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.balance-actions{display:flex;gap:10px;margin-top:16px;position:relative;}
+.btn{border-radius:var(--radius-sm);padding:12px 16px;font-weight:700;font-size:13.5px;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .15s;flex:1;}
+.btn:active{transform:scale(.96);}
+.btn-primary{background:var(--aurora);color:#fff;box-shadow:0 4px 16px rgba(124,92,255,.3);}
+.btn-ghost{background:var(--glass);border:1px solid var(--border-hi);color:var(--text);}
+.btn-danger{background:var(--danger-bg);color:var(--danger);border:1px solid rgba(255,93,108,.3);}
+.btn-success{background:var(--success-bg);color:var(--success);border:1px solid rgba(53,210,138,.3);}
+.btn-sm{padding:9px 12px;font-size:12px;border-radius:9px;}
+.btn-block{width:100%;}
+.btn[disabled]{opacity:.45;pointer-events:none;}
+
+.banner-wrap{margin-bottom:16px;border-radius:var(--radius-lg);overflow:hidden;position:relative;animation:riseUp .5s ease both;background:var(--elev-1);border:1px solid var(--border);}
+.banner-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;}
+.banner-track::-webkit-scrollbar{display:none;}
+.banner-slide{flex:0 0 100%;scroll-snap-align:start;aspect-ratio:16/7;}
+.banner-slide img{width:100%;height:100%;object-fit:cover;display:block;}
+.banner-dots{position:absolute;bottom:9px;left:0;right:0;display:flex;justify-content:center;gap:5px;}
+.banner-dot{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.35);transition:all .2s;}
+.banner-dot.active{width:16px;border-radius:3px;background:#fff;}
+
+.sec-title{font-family:var(--font-display);font-size:13px;font-weight:700;letter-spacing:.5px;color:var(--text);padding:2px 0 12px 2px;display:flex;align-items:center;gap:8px;}
+.sec-title::before{content:'';width:3px;height:15px;border-radius:2px;background:var(--aurora);flex-shrink:0;}
+.sec-title .cnt{margin-left:auto;font-family:var(--font-body);font-size:11px;font-weight:600;color:var(--text-dim2);}
+
+.cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
+.cat-card{background:var(--glass);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 6px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;transition:all .15s;animation:riseUp .4s ease both;}
+.cat-card:active{transform:scale(.94);background:var(--glass-hi);}
+.cat-icon{width:40px;height:40px;border-radius:12px;background:var(--aurora-soft);display:flex;align-items:center;justify-content:center;font-size:19px;}
+.cat-name{font-size:10.5px;font-weight:700;text-align:center;line-height:1.25;color:var(--text-dim);}
+
+.task-card{background:var(--glass);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;display:flex;align-items:center;gap:12px;margin-bottom:10px;animation:riseUp .35s ease both;}
+.task-icon{width:44px;height:44px;border-radius:13px;background:var(--aurora-soft);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+.task-mid{flex:1;min-width:0;}
+.task-title{font-size:13.5px;font-weight:700;line-height:1.3;}
+.task-meta{display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap;}
+.task-reward{font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--teal);}
+.task-limit{font-size:10px;color:var(--text-dim2);font-weight:600;}
+.task-btn{flex-shrink:0;padding:9px 14px;border-radius:10px;font-size:11.5px;font-weight:700;white-space:nowrap;}
+.task-btn.todo{background:var(--aurora);color:#fff;}
+.task-btn.verify{background:var(--warning-bg);color:var(--gold);border:1px solid rgba(245,185,66,.35);}
+.task-btn.done{background:var(--success-bg);color:var(--success);}
+.task-btn.full{background:var(--glass);color:var(--text-dim2);}
+
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:200;background:rgba(255,255,255,0.88);backdrop-filter:blur(18px);border-top:1px solid var(--border);padding:9px 8px calc(9px + env(safe-area-inset-bottom));display:flex;justify-content:space-around;max-width:480px;margin:0 auto;box-shadow:0 -4px 16px rgba(20,28,48,0.05);}
+.nav-tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 10px;border-radius:12px;transition:all .15s;color:var(--text-dim2);}
+.nav-tab.active{color:var(--text);}
+.nav-tab .ic{font-size:19px;}
+.nav-tab .lb{font-size:9.5px;font-weight:700;}
+.nav-tab.active .ic{filter:drop-shadow(0 0 8px rgba(124,92,255,.6));}
+
+.screen{display:none;animation:fadeIn .3s ease both;}
+.screen.active{display:block;}
+
+.ref-hero{background:var(--aurora);border-radius:var(--radius-xl);padding:22px;margin-bottom:14px;position:relative;overflow:hidden;box-shadow:var(--shadow-glow);animation:riseUp .4s ease both;}
+.ref-hero h3{font-family:var(--font-display);font-size:17px;color:#fff;font-weight:700;}
+.ref-hero p{font-size:12px;color:rgba(255,255,255,.85);margin-top:5px;line-height:1.5;}
+.ref-bonus-chip{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:12px;padding:8px 14px;margin-top:12px;font-family:var(--font-mono);font-weight:700;color:#fff;font-size:14px;}
+.ref-link-box{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.18);border-radius:12px;padding:11px 12px;margin-top:14px;}
+.ref-link-box span{flex:1;font-size:10.5px;color:rgba(255,255,255,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--font-mono);}
+.ref-link-box button{background:#fff;color:var(--violet);font-weight:800;font-size:11px;padding:8px 12px;border-radius:9px;flex-shrink:0;}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.stat-card{background:var(--glass);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;animation:riseUp .4s ease both;}
+.stat-val{font-family:var(--font-mono);font-size:20px;font-weight:700;}
+.stat-lab{font-size:10px;color:var(--text-dim2);font-weight:600;margin-top:3px;text-transform:uppercase;letter-spacing:1px;}
+
+.podium{display:flex;align-items:flex-end;gap:8px;margin-bottom:16px;}
+.podium-card{flex:1;background:var(--glass);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px 8px 12px;text-align:center;animation:popIn .4s ease both;}
+.podium-card.p1{border-color:rgba(245,185,66,.4);background:linear-gradient(180deg,rgba(245,185,66,.12),var(--glass));padding-top:20px;}
+.podium-crown{font-size:20px;margin-bottom:6px;}
+.podium-ava{width:44px;height:44px;border-radius:50%;background:var(--aurora-soft);display:flex;align-items:center;justify-content:center;font-weight:800;font-family:var(--font-display);margin:0 auto 8px;font-size:16px;}
+.podium-name{font-size:11.5px;font-weight:700;}
+.podium-amt{font-family:var(--font-mono);font-size:12px;color:var(--teal);font-weight:700;margin-top:3px;}
+.lead-row{display:flex;align-items:center;gap:12px;background:var(--glass);border:1px solid var(--border);border-radius:var(--radius-md);padding:12px 14px;margin-bottom:8px;animation:riseUp .3s ease both;}
+.lead-rank{width:26px;text-align:center;font-family:var(--font-mono);font-weight:700;color:var(--text-dim2);font-size:13px;}
+.lead-name{flex:1;font-size:13px;font-weight:700;}
+.lead-amt{font-family:var(--font-mono);font-size:12.5px;color:var(--teal);font-weight:700;}
+
+.profile-card{background:var(--glass);border:1px solid var(--border);border-radius:var(--radius-xl);padding:18px;display:flex;align-items:center;gap:14px;margin-bottom:14px;animation:riseUp .4s ease both;}
+.ava-lg{width:56px;height:56px;border-radius:16px;background:var(--aurora);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:20px;color:#fff;flex-shrink:0;overflow:hidden;}
+.ava-lg img{width:100%;height:100%;object-fit:cover;}
+.profile-name{font-size:16px;font-weight:800;}
+.profile-id{font-size:11px;color:var(--text-dim2);margin-top:2px;font-family:var(--font-mono);}
+.list-btn{display:flex;align-items:center;gap:12px;background:var(--glass);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;margin-bottom:9px;transition:all .15s;width:100%;text-align:left;animation:riseUp .35s ease both;}
+.list-btn:active{transform:scale(.98);background:var(--glass-hi);}
+.list-ic{width:38px;height:38px;border-radius:11px;background:var(--aurora-soft);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.list-txt{flex:1;}
+.list-main{font-size:13px;font-weight:700;}
+.list-sub{font-size:10.5px;color:var(--text-dim2);margin-top:1px;}
+.list-arrow{color:var(--text-dim2);font-size:14px;}
+
+.wd-row{background:var(--glass);border:1px solid var(--border);border-radius:var(--radius-md);padding:13px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;animation:riseUp .3s ease both;}
+.wd-amt{font-family:var(--font-mono);font-weight:700;font-size:14px;}
+.wd-meta{font-size:10.5px;color:var(--text-dim2);margin-top:2px;}
+.status-pill{font-size:9.5px;font-weight:800;padding:4px 9px;border-radius:20px;letter-spacing:.3px;text-transform:uppercase;flex-shrink:0;}
+.status-pill.pending{background:var(--warning-bg);color:var(--gold);}
+.status-pill.approved{background:var(--success-bg);color:var(--success);}
+.status-pill.rejected{background:var(--danger-bg);color:var(--danger);}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(20,28,48,0.45);backdrop-filter:blur(4px);z-index:5000;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .25s ease;}
+.modal-overlay.active{opacity:1;pointer-events:auto;}
+.modal-sheet{background:var(--elev-1);border:1px solid var(--border-hi);border-radius:26px 26px 0 0;padding:22px 18px calc(22px + env(safe-area-inset-bottom));width:100%;max-width:480px;max-height:88vh;overflow-y:auto;transform:translateY(24px);transition:transform .3s cubic-bezier(.2,.8,.2,1);}
+.modal-overlay.active .modal-sheet{transform:translateY(0);}
+.modal-head{display:flex;align-items:center;margin-bottom:16px;}
+.modal-title{font-family:var(--font-display);font-weight:700;font-size:16px;flex:1;}
+.modal-close{width:32px;height:32px;border-radius:10px;background:var(--glass);display:flex;align-items:center;justify-content:center;font-size:15px;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--text-dim);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;}
+.method-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.method-opt{border:1.5px solid var(--border);border-radius:12px;padding:12px 6px;text-align:center;font-size:12px;font-weight:700;transition:all .15s;}
+.method-opt.active{border-color:var(--violet);background:var(--aurora-soft);color:var(--violet);}
+.help-note{font-size:11px;color:var(--text-dim2);margin-top:8px;line-height:1.5;}
+
+#toast-wrap{position:fixed;top:16px;left:0;right:0;z-index:9999;display:flex;flex-direction:column;align-items:center;gap:8px;pointer-events:none;}
+.toast{background:var(--elev-2);border:1px solid var(--border-hi);border-radius:12px;padding:11px 16px;font-size:12.5px;font-weight:600;box-shadow:var(--shadow-md);display:flex;align-items:center;gap:8px;animation:toastIn .25s ease both;max-width:88%;}
+.toast.success{border-color:rgba(53,210,138,.4);}
+.toast.error{border-color:rgba(255,93,108,.4);}
+@keyframes toastIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+
+.welcome-art{width:78px;height:78px;border-radius:22px;background:var(--aurora);display:flex;align-items:center;justify-content:center;font-size:32px;margin:6px auto 16px;box-shadow:var(--shadow-glow);animation:popIn .5s ease both;}
+.welcome-text{text-align:center;font-size:13.5px;color:var(--text-dim);line-height:1.7;padding:0 6px 4px;white-space:pre-line;}
+
+#admin-panel{position:fixed;inset:0;z-index:4000;background:var(--bg);display:none;overflow-y:auto;}
+#admin-panel.active{display:block;}
+.admin-head{position:sticky;top:0;z-index:10;background:rgba(255,255,255,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:14px 16px;display:flex;align-items:center;gap:10px;}
+.admin-body{max-width:520px;margin:0 auto;padding:16px;}
+.admin-tabs{display:flex;gap:6px;overflow-x:auto;padding:12px 16px 0;scrollbar-width:none;}
+.admin-tabs::-webkit-scrollbar{display:none;}
+.a-tab{flex-shrink:0;padding:9px 14px;border-radius:11px;font-size:12px;font-weight:700;background:var(--glass);border:1px solid var(--border);color:var(--text-dim);white-space:nowrap;}
+.a-tab.active{background:var(--aurora);color:#fff;border-color:transparent;}
+.a-screen{display:none;}
+.a-screen.active{display:block;animation:fadeIn .25s ease both;}
+.a-card{background:var(--glass);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;margin-bottom:10px;}
+.a-row-between{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.a-item-title{font-size:13px;font-weight:700;}
+.a-item-sub{font-size:11px;color:var(--text-dim2);margin-top:3px;}
+.a-mini-btns{display:flex;gap:6px;flex-shrink:0;}
+.mini-btn{width:30px;height:30px;border-radius:9px;background:var(--elev-2);display:flex;align-items:center;justify-content:center;font-size:13px;}
+.a-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.a-stat{background:var(--glass);border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;}
+.a-stat .v{font-family:var(--font-mono);font-size:22px;font-weight:700;}
+.a-stat .l{font-size:10px;color:var(--text-dim2);margin-top:4px;text-transform:uppercase;letter-spacing:1px;font-weight:600;}
+.toggle{width:42px;height:24px;border-radius:20px;background:var(--elev-2);border:1px solid var(--border);position:relative;flex-shrink:0;transition:all .2s;}
+.toggle.on{background:var(--aurora);border-color:transparent;}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s;}
+.toggle.on::after{transform:translateX(18px);}
+.banner-thumb{width:100%;aspect-ratio:16/7;border-radius:12px;object-fit:cover;margin-bottom:8px;background:var(--elev-2);}
+.divider{height:1px;background:var(--border);margin:16px 0;}
+.badge-count{background:var(--danger);color:#fff;font-size:9px;font-weight:800;border-radius:10px;padding:2px 6px;margin-left:6px;}
+.empty-note{text-align:center;padding:30px 10px;color:var(--text-dim2);font-size:12.5px;}
+.search-bar{margin-bottom:12px;}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="auroraGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7C5CFF"/><stop offset="50%" stop-color="#4C8DFF"/><stop offset="100%" stop-color="#2DE0C6"/>
+    </linearGradient>
+    <linearGradient id="auroraGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7C5CFF"/><stop offset="50%" stop-color="#4C8DFF"/><stop offset="100%" stop-color="#2DE0C6"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<div id="ambient"><div class="orb orb1"></div><div class="orb orb2"></div></div>
+<div id="toast-wrap"></div>
+
+<!-- ===== LOADING SPLASH ===== -->
+<div id="loading">
+  <div class="load-ring-wrap">
+    <div class="load-halo"></div>
+    <svg viewBox="0 0 112 112"><circle class="load-track" cx="56" cy="56" r="49"/><circle class="load-arc" cx="56" cy="56" r="49"/></svg>
+    <div class="load-mark" id="load-mark-el">ME</div>
+  </div>
+  <div class="load-title" id="load-title-el">META EARN</div>
+  <div class="load-sub" id="load-sub-text">Preparing your dashboard</div>
+  <div class="load-bar"><div class="load-bar-fill"></div></div>
+</div>
+
+<!-- ===== GATE: BANNED ===== -->
+<div id="gate-banned" class="gate-screen hidden">
+  <div class="gate-icon danger">🚫</div>
+  <div class="gate-title danger">অ্যাকাউন্ট সাসপেন্ড করা হয়েছে</div>
+  <div class="gate-text">নিয়ম লঙ্ঘনের কারণে আপনার অ্যাকাউন্টটি সাময়িকভাবে স্থগিত করা হয়েছে। আপনি যদি মনে করেন এটি ভুলবশত হয়েছে, সাপোর্টে যোগাযোগ করুন।</div>
+  <div class="gate-list"><button class="btn btn-primary btn-block" id="banned-support-btn">📩 সাপোর্টে যোগাযোগ করুন</button></div>
+</div>
+
+<!-- ===== GATE: MULTI DEVICE ===== -->
+<div id="gate-device" class="gate-screen hidden">
+  <div class="gate-icon danger">⚠️</div>
+  <div class="gate-title danger">কানেকশন সমস্যা!</div>
+  <div class="gate-text">ডাটাবেস বা API-তে সমস্যা হয়েছে।</div>
+  <div class="gate-errbox"><b>Error:</b> এক ডিভাইস থেকে একাধিক অ্যাকাউন্ট ব্যবহার করা সম্পূর্ণ নিষিদ্ধ! এই ডিভাইসে ইতিমধ্যে একটি অ্যাকাউন্ট সচল আছে।</div>
+</div>
+
+<!-- ===== GATE: FORCE JOIN ===== -->
+<div id="gate-join" class="gate-screen hidden">
+  <div class="gate-icon warn">📢</div>
+  <div class="gate-title warn">আগে চ্যানেলে জয়েন করুন</div>
+  <div class="gate-text">অ্যাপ ব্যবহার করার আগে নিচের চ্যানেল/গ্রুপ গুলোতে জয়েন করতে হবে —</div>
+  <div class="gate-list" id="join-channel-list"></div>
+  <div class="gate-list" style="margin-top:14px;">
+    <button class="btn btn-primary btn-block" id="join-verify-btn">✅ জয়েন করেছি, ভেরিফাই করুন</button>
+  </div>
+</div>
+
+<!-- ===== WELCOME MODAL ===== -->
+<div id="welcome-modal" class="modal-overlay">
+  <div class="modal-sheet">
+    <div class="welcome-art">👋</div>
+    <div class="modal-title" style="text-align:center;margin-bottom:8px;" id="welcome-title">META EARN এ স্বাগতম!</div>
+    <div class="welcome-text" id="welcome-text-body">টাস্ক সম্পন্ন করুন, রেফার করুন এবং সহজেই আয় করুন।</div>
+    <button class="btn btn-primary btn-block" style="margin-top:18px;" id="welcome-close-btn">শুরু করি 🚀</button>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app" class="hidden">
+  <div class="header">
+    <div class="brand-mark">ME</div>
+    <div>
+      <div class="brand-name">META EARN</div>
+      <div class="brand-sub">Earn Smart</div>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn hidden" id="admin-gear-btn">⚙️</button>
+      <button class="icon-btn" id="support-header-btn">🎧</button>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <div class="screen active" id="screen-home">
+    <div class="balance-card">
+      <div class="balance-top">
+        <div>
+          <div class="balance-label">Total Balance</div>
+          <div class="balance-figure"><span class="cur">৳</span><span id="home-balance">0.00</span></div>
+        </div>
+        <div class="ring-wrap">
+          <svg viewBox="0 0 64 64"><circle class="ring-track" cx="32" cy="32" r="27"/><circle class="ring-arc" id="home-ring" cx="32" cy="32" r="27" stroke-dasharray="170" stroke-dashoffset="170"/></svg>
+          <div class="ring-icon">💰</div>
+        </div>
+      </div>
+      <div class="balance-actions">
+        <button class="btn btn-primary" id="withdraw-open-btn">💸 Withdraw</button>
+        <button class="btn btn-ghost" id="home-refer-btn">🎁 Refer</button>
+      </div>
+    </div>
+
+    <div class="banner-wrap">
+      <div class="banner-track" id="banner-track"></div>
+      <div class="banner-dots" id="banner-dots"></div>
+    </div>
+
+    <div class="sec-title">ক্যাটাগরি সমূহ</div>
+    <div class="cat-grid" id="home-cat-grid"></div>
+
+    <div class="sec-title">সাম্প্রতিক টাস্ক<span class="cnt" id="home-task-cnt"></span></div>
+    <div id="home-task-list"></div>
+  </div>
+
+  <!-- TASKS (category list or task list) -->
+  <div class="screen" id="screen-tasks">
+    <div class="sec-title">সব ক্যাটাগরি</div>
+    <div class="cat-grid" id="tasks-cat-grid"></div>
+    <div id="tasks-cat-detail" class="hidden">
+      <button class="btn btn-ghost btn-sm" id="tasks-back-btn" style="margin-bottom:12px;">← সব ক্যাটাগরি</button>
+      <div class="sec-title" id="tasks-cat-title">Tasks</div>
+      <div id="tasks-list"></div>
+    </div>
+  </div>
+
+  <!-- REFER -->
+  <div class="screen" id="screen-refer">
+    <div class="ref-hero">
+      <h3>Invite Your Friends</h3>
+      <p>প্রতি সফল রেফারে নিশ্চিত বোনাস পান এবং তাদের প্রতিটি টাস্ক আয়ের কমিশন লাইফটাইম পেতে থাকুন!</p>
+      <div class="ref-bonus-chip">🎁 <span id="ref-bonus-amt">৳10</span> প্রতি রেফারে</div>
+      <div class="ref-link-box"><span id="ref-link-text">লোড হচ্ছে…</span><button id="ref-copy-btn">Copy</button></div>
+    </div>
+    <button class="btn btn-primary btn-block" id="ref-share-btn" style="margin-bottom:16px;">📤 Share on Telegram</button>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-val" id="ref-count">0</div><div class="stat-lab">Total Refers</div></div>
+      <div class="stat-card"><div class="stat-val" id="ref-earn">৳0</div><div class="stat-lab">Refer Earnings</div></div>
+    </div>
+    <div class="sec-title">আমার টিম</div>
+    <div id="ref-team-list"><div class="empty-note">এখনো কেউ যোগ দেয়নি — লিংক শেয়ার করুন!</div></div>
+  </div>
+
+  <!-- LEADERS -->
+  <div class="screen" id="screen-leaders">
+    <div class="sec-title">Top Earners</div>
+    <div class="podium" id="leaders-podium"></div>
+    <div id="leaders-list"></div>
+  </div>
+
+  <!-- ACCOUNT -->
+  <div class="screen" id="screen-account">
+    <div class="profile-card">
+      <div class="ava-lg" id="acc-avatar">U</div>
+      <div>
+        <div class="profile-name" id="acc-name">User</div>
+        <div class="profile-id" id="acc-id">ID: —</div>
+      </div>
+    </div>
+    <button class="list-btn" id="acc-history-btn"><div class="list-ic">🧾</div><div class="list-txt"><div class="list-main">Withdraw History</div><div class="list-sub">আপনার সব উত্তোলনের হিসাব</div></div><div class="list-arrow">›</div></button>
+    <button class="list-btn" id="acc-support-btn"><div class="list-ic">🎧</div><div class="list-txt"><div class="list-main">Support Center</div><div class="list-sub">যেকোনো সমস্যায় যোগাযোগ করুন</div></div><div class="list-arrow">›</div></button>
+    <button class="list-btn" id="acc-admin-btn" style="display:none;"><div class="list-ic">🛠️</div><div class="list-txt"><div class="list-main">Admin Panel</div><div class="list-sub">অ্যাডমিন কন্ট্রোল প্যানেল</div></div><div class="list-arrow">›</div></button>
+    <div id="acc-history-wrap" class="hidden">
+      <div class="sec-title" style="margin-top:14px;">Withdraw History</div>
+      <div id="acc-history-list"><div class="empty-note">কোনো উত্তোলন নেই</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav hidden" id="bottom-nav">
+  <div class="nav-tab active" data-screen="home"><div class="ic">🏠</div><div class="lb">Home</div></div>
+  <div class="nav-tab" data-screen="tasks"><div class="ic">📋</div><div class="lb">Tasks</div></div>
+  <div class="nav-tab" data-screen="refer"><div class="ic">🎁</div><div class="lb">Refer</div></div>
+  <div class="nav-tab" data-screen="leaders"><div class="ic">🏆</div><div class="lb">Leaders</div></div>
+  <div class="nav-tab" data-screen="account"><div class="ic">👤</div><div class="lb">Account</div></div>
+</div>
+
+<!-- ===== WITHDRAW MODAL ===== -->
+<div class="modal-overlay" id="withdraw-modal">
+  <div class="modal-sheet">
+    <div class="modal-head"><div class="modal-title">Withdraw Request</div><button class="modal-close" data-close="withdraw-modal">✕</button></div>
+    <div class="help-note" style="margin-bottom:14px;" id="withdraw-daylimit-note">আপনি দিনে সর্বোচ্চ ৫ বার টাকা তুলতে পারবেন।</div>
+    <div class="method-grid" id="withdraw-method-grid"></div>
+    <div class="field"><label>Account Number</label><input type="text" id="withdraw-account" placeholder="যে নাম্বারে টাকা পাঠাবো"></div>
+    <div class="field"><label>Amount</label><input type="number" id="withdraw-amount" placeholder="Min ৳110"></div>
+    <div class="help-note" id="withdraw-calc-note">চার্জ: ৳0 · আপনি পাবেন: ৳0</div>
+    <button class="btn btn-primary btn-block" style="margin-top:14px;" id="withdraw-submit-btn">Submit Request</button>
+  </div>
+</div>
+
+<!-- ===== TASK DETAIL MODAL ===== -->
+<div class="modal-overlay" id="task-modal">
+  <div class="modal-sheet">
+    <div class="modal-head"><div class="modal-title" id="task-modal-title">Task</div><button class="modal-close" data-close="task-modal">✕</button></div>
+    <div id="task-modal-body"></div>
+  </div>
+</div>
+
+<!-- ===== ADMIN PANEL ===== -->
+<div id="admin-panel">
+  <div class="admin-head">
+    <button class="icon-btn" id="admin-close-btn">←</button>
+    <div>
+      <div style="font-family:var(--font-display);font-weight:700;font-size:15px;">Admin Panel</div>
+      <div style="font-size:10px;color:var(--text-dim2);">META EARN Control Center</div>
+    </div>
+  </div>
+  <div class="admin-tabs" id="admin-tabs">
+    <button class="a-tab active" data-atab="dash">📊 Dashboard</button>
+    <button class="a-tab" data-atab="cats">🗂️ Categories</button>
+    <button class="a-tab" data-atab="tasks">📋 Tasks</button>
+    <button class="a-tab" data-atab="join">📢 Force Join</button>
+    <button class="a-tab" data-atab="withdraw">💸 Withdrawals</button>
+    <button class="a-tab" data-atab="users">👥 Users</button>
+    <button class="a-tab" data-atab="banners">🖼️ Banners</button>
+    <button class="a-tab" data-atab="broadcast">📣 Broadcast</button>
+    <button class="a-tab" data-atab="settings">⚙️ Settings</button>
+  </div>
+  <div class="admin-body">
+
+    <div class="a-screen active" id="a-dash">
+      <div class="a-stat-grid">
+        <div class="a-stat"><div class="v" id="a-stat-users">0</div><div class="l">Total Users</div></div>
+        <div class="a-stat"><div class="v" id="a-stat-balance">৳0</div><div class="l">Total Balance Liability</div></div>
+        <div class="a-stat"><div class="v" id="a-stat-pending">0</div><div class="l">Pending Withdrawals</div></div>
+        <div class="a-stat"><div class="v" id="a-stat-tasks">0</div><div class="l">Active Tasks</div></div>
+      </div>
+      <div class="a-card">
+        <div class="a-item-title" style="margin-bottom:8px;">Quick Info</div>
+        <div class="a-item-sub">Bot Token ও Admin ID কোডে সেট করা আছে। রেফারেল কাজ করার জন্য Settings ট্যাবে গিয়ে Mini App Link সেট করুন।</div>
+      </div>
+    </div>
+
+    <div class="a-screen" id="a-cats">
+      <div class="a-card">
+        <div class="a-item-title" style="margin-bottom:10px;">নতুন ক্যাটাগরি যোগ করুন</div>
+        <div class="field"><label>নাম</label><input id="cat-name-input" placeholder="যেমন: চ্যানেল জয়েন"></div>
+        <div class="field"><label>আইকন (ইমোজি)</label><input id="cat-icon-input" placeholder="📢"></div>
+        <button class="btn btn-primary btn-block" id="cat-add-btn">+ Add Category</button>
+      </div>
+      <div id="cat-admin-list"></div>
+    </div>
+
+    <div class="a-screen" id="a-tasks">
+      <div class="a-card">
+        <div class="a-item-title" style="margin-bottom:10px;">নতুন টাস্ক যোগ করুন</div>
+        <div class="field"><label>ক্যাটাগরি</label><select id="task-cat-select"></select></div>
+        <div class="field"><label>টাইটেল</label><input id="task-title-input" placeholder="যেমন: চ্যানেল জয়েন করুন"></div>
+        <div class="field"><label>বিবরণ</label><textarea id="task-desc-input" rows="2" placeholder="টাস্কের বিস্তারিত"></textarea></div>
+        <div class="field"><label>টাস্কের ধরন</label>
+          <select id="task-type-select">
+            <option value="join">চ্যানেল/গ্রুপ জয়েন (Auto Verify)</option>
+            <option value="link">লিংক ভিজিট / অ্যাপ ডাউনলোড (Manual Claim)</option>
+            <option value="custom">কাস্টম টাস্ক (Manual Claim)</option>
+          </select>
+        </div>
+        <div class="field"><label>চ্যানেল ইউজারনেম (join টাস্কের জন্য, @ ছাড়া)</label><input id="task-target-input" placeholder="@username অথবা https://link"></div>
+        <div class="field"><label>প্রতি টাস্কে রিওয়ার্ড (৳)</label><input id="task-reward-input" type="number" placeholder="2.00"></div>
+        <div class="field"><label>সর্বোচ্চ কতজন করতে পারবে (0 = আনলিমিটেড)</label><input id="task-limit-input" type="number" placeholder="0"></div>
+        <button class="btn btn-primary btn-block" id="task-add-btn">+ Add Task</button>
+      </div>
+      <div id="task-admin-list"></div>
+    </div>
+
+    <div class="a-screen" id="a-join">
+      <div class="a-card">
+        <div class="a-item-title" style="margin-bottom:10px;">Force Join চ্যানেল যোগ করুন</div>
+        <div class="a-item-sub" style="margin-bottom:10px;">ইউজার এই চ্যানেলগুলোতে জয়েন না করলে অ্যাপ ব্যবহার করতে পারবে না। বট-কে অবশ্যই চ্যানেলে অ্যাডমিন করে রাখতে হবে।</div>
+        <div class="field"><label>নাম</label><input id="join-name-input" placeholder="যেমন: META EARN Official"></div>
+        <div class="field"><label>ইউজারনেম (@ ছাড়া)</label><input id="join-username-input" placeholder="metaearnofficial"></div>
+        <div class="field"><label>জয়েন লিংক</label><input id="join-link-input" placeholder="https://t.me/metaearnofficial"></div>
+        <button class="btn btn-primary btn-block" id="join-add-btn">+ Add Channel</button>
+      </div>
+      <div id="join-admin-list"></div>
+    </div>
+
+    <div class="a-screen" id="a-withdraw">
+      <div class="search-bar"><select id="withdraw-filter-select"><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="all">All</option></select></div>
+      <div id="withdraw-admin-list"></div>
+    </div>
+
+    <div class="a-screen" id="a-users">
+      <div class="search-bar"><input id="user-search-input" placeholder="নাম বা ID দিয়ে খুঁজুন"></div>
+      <div id="user-admin-list"></div>
+    </div>
+
+    <div class="a-screen" id="a-banners">
+      <div class="a-card">
+        <div class="a-item-title" style="margin-bottom:10px;">ব্যানার যোগ করুন</div>
+        <div class="field"><label>ইমেজ URL</label><input id="banner-url-input" placeholder="https://..."></div>
+        <div class="a-item-sub" style="margin:6px 0 10px;">অথবা গ্যালারি থেকে ছবি আপলোড করুন —</div>
+        <input type="file" accept="image/*" id="banner-file-input" style="margin-bottom:10px;">
+        <button class="btn btn-primary btn-block" id="banner-add-btn">+ Add Banner</button>
+      </div>
+      <div id="banner-admin-list"></div>
+    </div>
+
+    <div class="a-screen" id="a-broadcast">
+      <div class="a-card">
+        <div class="a-item-title" style="margin-bottom:10px;">সব ইউজারকে মেসেজ পাঠান</div>
+        <div class="field"><label>মেসেজ</label><textarea id="broadcast-text-input" rows="4" placeholder="আপনার মেসেজ লিখুন…"></textarea></div>
+        <div class="field"><label>ইমেজ URL (ঐচ্ছিক)</label><input id="broadcast-image-input" placeholder="https://..."></div>
+        <button class="btn btn-primary btn-block" id="broadcast-send-btn">📣 Send Broadcast</button>
+        <div class="help-note" id="broadcast-progress"></div>
+      </div>
+    </div>
+
+    <div class="a-screen" id="a-settings">
+      <div class="a-card">
+        <div class="a-item-title" style="margin-bottom:10px;">Website Logo</div>
+        <div id="logo-preview-wrap" style="display:flex;align-items:center;gap:12px;margin-bottom:12px;"></div>
+        <div class="field"><label>Logo Image URL</label><input id="set-logo-url" placeholder="https://..."></div>
+        <div class="a-item-sub" style="margin:6px 0 10px;">অথবা গ্যালারি থেকে আপলোড করুন —</div>
+        <input type="file" accept="image/*" id="set-logo-file" style="margin-bottom:12px;">
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary" id="save-logo-btn">Save Logo</button>
+          <button class="btn btn-danger" id="remove-logo-btn">Remove</button>
+        </div>
+        <div class="help-note">লোগো হেডার এবং লোডিং স্ক্রিনে দেখানো হবে। লোগো না দিলে ডিফল্ট "ME" মনোগ্রাম দেখাবে।</div>
+      </div>
+      <div class="a-card">
+        <div class="a-item-title" style="margin-bottom:10px;">General</div>
+        <div class="field"><label>Web Name</label><input id="set-webname" placeholder="META EARN"></div>
+        <div class="field"><label>Support Link (Telegram)</label><input id="set-support" placeholder="https://t.me/yourusername"></div>
+        <div class="field"><label>Welcome Message</label><textarea id="set-welcome" rows="3"></textarea></div>
+        <div class="field"><label>Mini App Link (BotFather থেকে পাওয়া, রেফারেলের জন্য জরুরি)</label><input id="set-miniapplink" placeholder="https://t.me/YourBot/YourApp"></div>
+        <button class="btn btn-primary btn-block" id="save-general-btn">Save General Settings</button>
+      </div>
+      <div class="a-card">
+        <div class="a-item-title" style="margin-bottom:10px;">Referral Settings</div>
+        <div class="field"><label>Referral Bonus (৳ প্রতি সফল রেফারে)</label><input id="set-refbonus" type="number"></div>
+        <div class="field"><label>Referral Commission (%) — রেফারকৃত ইউজারের প্রতিটি টাস্ক আয়ের কত % আপনি পাবেন</label><input id="set-refcommission" type="number"></div>
+        <button class="btn btn-primary btn-block" id="save-refsettings-btn">Save Referral Settings</button>
+      </div>
+      <div class="a-card">
+        <div class="a-item-title" style="margin-bottom:10px;">Withdraw Settings</div>
+        <div class="field"><label>Minimum Withdraw (৳)</label><input id="set-minwd" type="number"></div>
+        <div class="field"><label>Withdraw Charge (৳)</label><input id="set-wdcharge" type="number"></div>
+        <div class="field"><label>একজন ইউজার দিনে সর্বোচ্চ কতবার তুলতে পারবে</label><input id="set-maxwdperday" type="number"></div>
+        <div class="a-item-title" style="margin:14px 0 8px;">Payment Methods (Enable/Disable)</div>
+        <div class="a-row-between" style="margin-bottom:10px;"><div class="a-item-title">Bkash</div><div class="toggle" id="toggle-bkash" data-method="bkash"></div></div>
+        <div class="a-row-between" style="margin-bottom:10px;"><div class="a-item-title">Nagad</div><div class="toggle" id="toggle-nagad" data-method="nagad"></div></div>
+        <div class="a-row-between"><div class="a-item-title">Rocket</div><div class="toggle" id="toggle-rocket" data-method="rocket"></div></div>
+        <button class="btn btn-primary btn-block" style="margin-top:14px;" id="save-wdsettings-btn">Save Withdraw Settings</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   META EARN — Telegram Mini App
+   Single-file client. Firebase Realtime Database is the backend.
+   SECURITY NOTE: the bot token below is called directly from the browser
+   (getChatMember / sendMessage) so this app needs NO server to run — same
+   lightweight architecture as the reference app. The tradeoff is the token
+   is visible in client source. For production hardening, move tgApi() and
+   tgSendMessage() behind a small Firebase Cloud Function / server proxy and
+   keep the token there instead. See README for details.
+   ========================================================================= */
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCnE_K3o9FcUfrMxcPapzKfZvUavVuMXBc",
+  authDomain: "meta-buyer-zone.firebaseapp.com",
+  databaseURL: "https://meta-buyer-zone-default-rtdb.firebaseio.com",
+  projectId: "meta-buyer-zone",
+  storageBucket: "meta-buyer-zone.firebasestorage.app",
+  messagingSenderId: "826725132813",
+  appId: "1:826725132813:web:db9cc14b3386a2cdc10344",
+  measurementId: "G-1SM8MCR4ES"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const ADMIN_ID = "8505710811";
+const BOT_TOKEN = "7657910804:AAGUNdzjqj4AQ7ZkyAQo06ebPCvIz_xIcKk";
+const TG_API = `https://api.telegram.org/bot${BOT_TOKEN}/`;
+const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+
+let CURRENT_USER = null;
+let START_PARAM = '';
+let SETTINGS = {};
+let CATEGORIES = {};
+let TASKS = {};
+let BANNERS = {};
+let JOIN_CHANNELS = {};
+let USER_DATA = null;
+let IS_ADMIN = false;
+let ACTIVE_CAT_ID = null;
+
+/* ---------------- helpers ---------------- */
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function money(n){ n = Number(n||0); return n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function toast(msg, type){
+  const w = $('toast-wrap');
+  const el = document.createElement('div');
+  el.className = 'toast ' + (type==='success'?'success':type==='error'?'error':'');
+  el.textContent = msg;
+  w.appendChild(el);
+  setTimeout(()=>{ el.style.transition='all .25s'; el.style.opacity='0'; el.style.transform='translateY(-10px)'; setTimeout(()=>el.remove(),250); }, 2600);
+}
+function openModal(id){ $(id).classList.add('active'); }
+function closeModal(id){ $(id).classList.remove('active'); }
+function switchScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $('screen-'+name).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.toggle('active', t.dataset.screen===name));
+}
+async function tgApi(method, params){
+  const qs = new URLSearchParams(params).toString();
+  const res = await fetch(`${TG_API}${method}?${qs}`);
+  return res.json();
+}
+async function tgSendMessage(chatId, text, photoUrl){
+  try{
+    if(photoUrl){
+      await fetch(`${TG_API}sendPhoto`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId, photo:photoUrl, caption:text})});
+    }else{
+      await fetch(`${TG_API}sendMessage`, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:chatId, text})});
+    }
+    return true;
+  }catch(e){ return false; }
+}
+
+/* ---------------- telegram init ---------------- */
+function initTelegram(){
+  if(tg){
+    try{ tg.ready(); tg.expand(); }catch(e){}
+    try{ tg.setHeaderColor && tg.setHeaderColor('#0A0E1A'); }catch(e){}
+    try{ tg.disableVerticalSwipes && tg.disableVerticalSwipes(); }catch(e){}
+    const u = tg.initDataUnsafe && tg.initDataUnsafe.user;
+    if(u){
+      CURRENT_USER = { id:String(u.id), name:[u.first_name,u.last_name].filter(Boolean).join(' ')||u.username||('User'+u.id), username:u.username||'', photoUrl:u.photo_url||'' };
+    }
+    START_PARAM = (tg.initDataUnsafe && tg.initDataUnsafe.start_param) || '';
+  }
+  if(!CURRENT_USER){
+    let devId = localStorage.getItem('meta_earn_dev_id');
+    if(!devId){ devId = 'web_' + Math.random().toString(36).slice(2,10); localStorage.setItem('meta_earn_dev_id', devId); }
+    CURRENT_USER = { id: devId, name:'Preview User', username:'', photoUrl:'' };
+    const params = new URLSearchParams(location.search);
+    START_PARAM = params.get('start') || '';
+    if(params.get('admin')==='1'){ CURRENT_USER.id = ADMIN_ID; CURRENT_USER.name='Admin (Preview)'; }
+    toast('⚠️ Telegram এর বাইরে প্রিভিউ মোডে চলছে','error');
+  }
+  IS_ADMIN = String(CURRENT_USER.id) === String(ADMIN_ID);
+}
+
+/* ---------------- anti multi-account ---------------- */
+async function sha256(str){
+  try{
+    if(window.crypto && crypto.subtle){
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+      return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    }
+  }catch(e){}
+  let h=0; for(let i=0;i<str.length;i++){ h=(h<<5)-h+str.charCodeAt(i); h|=0; }
+  return 'fb'+Math.abs(h);
+}
+async function getDeviceFingerprint(){
+  let canvasSig = '';
+  try{
+    const c = document.createElement('canvas'); c.width=200; c.height=40;
+    const ctx = c.getContext('2d');
+    ctx.textBaseline='top'; ctx.font='14px Arial'; ctx.fillStyle='#f60'; ctx.fillRect(0,0,200,40);
+    ctx.fillStyle='#069'; ctx.fillText('META-EARN-fp',2,2);
+    canvasSig = c.toDataURL();
+  }catch(e){}
+  let raw = 'x';
+  try{
+    raw = [navigator.userAgent, navigator.language, screen.width+'x'+screen.height, screen.colorDepth, Intl.DateTimeFormat().resolvedOptions().timeZone, canvasSig].join('|');
+  }catch(e){}
+  return sha256(raw);
+}
+async function checkDeviceBinding(){
+  try{
+    const fp = await getDeviceFingerprint();
+    const ref = db.ref('deviceRegistry/'+fp);
+    const snap = await ref.once('value');
+    const boundUserId = snap.val();
+    if(!boundUserId){ await ref.set(CURRENT_USER.id); return true; }
+    return String(boundUserId) === String(CURRENT_USER.id);
+  }catch(e){ console.error(e); return true; } // fail-open so a network hiccup never locks a real user out
+}
+
+/* ---------------- user bootstrap ---------------- */
+async function ensureUser(){
+  const ref = db.ref('users/'+CURRENT_USER.id);
+  const snap = await ref.once('value');
+  if(snap.exists()){
+    USER_DATA = snap.val();
+    ref.update({ name:CURRENT_USER.name, username:CURRENT_USER.username||'' });
+    return;
+  }
+  let referredBy = null;
+  if(START_PARAM && START_PARAM.startsWith('ref_')){
+    const refId = START_PARAM.slice(4);
+    if(refId && refId !== CURRENT_USER.id){
+      const refSnap = await db.ref('users/'+refId).once('value');
+      if(refSnap.exists()) referredBy = refId;
+    }
+  }
+  const newUser = {
+    id: CURRENT_USER.id, name:CURRENT_USER.name, username:CURRENT_USER.username||'',
+    balance:0, totalEarned:0, referredBy: referredBy||null, referralCount:0, referralEarnings:0,
+    referralBonusPaid:false, joinedAt: Date.now(), banned:false, seenWelcome:false, completedTasks:{}
+  };
+  await ref.set(newUser);
+  USER_DATA = newUser;
+  if(referredBy){ await db.ref('users/'+referredBy+'/referralCount').transaction(v=>(v||0)+1); }
+}
+
+/* ---------------- initial data + live listeners ---------------- */
+async function loadInitialData(){
+  const [s1,s2,s3,s4,s5] = await Promise.all([
+    db.ref('settings').once('value'), db.ref('categories').once('value'),
+    db.ref('tasks').once('value'), db.ref('banners').once('value'), db.ref('forceJoinChannels').once('value')
+  ]);
+  SETTINGS = s1.val()||{}; CATEGORIES = s2.val()||{}; TASKS = s3.val()||{}; BANNERS = s4.val()||{}; JOIN_CHANNELS = s5.val()||{};
+}
+function startListeners(){
+  db.ref('settings').on('value', s=>{ SETTINGS = s.val()||{}; applySettingsToUI(); });
+  db.ref('categories').on('value', s=>{ CATEGORIES = s.val()||{}; renderCategories(); });
+  db.ref('tasks').on('value', s=>{ TASKS = s.val()||{}; renderTasksEverywhere(); });
+  db.ref('banners').on('value', s=>{ BANNERS = s.val()||{}; renderBanners(); });
+  db.ref('forceJoinChannels').on('value', s=>{ JOIN_CHANNELS = s.val()||{}; });
+  db.ref('users/'+CURRENT_USER.id).on('value', s=>{
+    if(!s.exists()) return;
+    USER_DATA = s.val();
+    if(USER_DATA.banned){ showBannedGate(); return; }
+    renderUserBits();
+  });
+  db.ref('withdrawals').orderByChild('userId').equalTo(CURRENT_USER.id).on('value', s=>renderAccountHistory(s.val()||{}));
+  db.ref('users').orderByChild('balance').limitToLast(20).on('value', s=>renderLeaders(s.val()||{}));
+}
+
+/* ---------------- boot sequence ---------------- */
+function hideLoading(){ $('loading').style.opacity='0'; $('loading').style.visibility='hidden'; setTimeout(()=>{$('loading').style.display='none';},500); }
+function showBannedGate(){ $('app').classList.add('hidden'); $('bottom-nav').classList.add('hidden'); $('admin-panel').classList.remove('active'); $('gate-banned').classList.remove('hidden'); hideLoading(); }
+async function checkForceJoin(){
+  const channels = Object.entries(JOIN_CHANNELS||{});
+  if(channels.length===0 || IS_ADMIN) return true;
+  const results = await Promise.all(channels.map(async ([id,c])=>{
+    try{
+      const res = await tgApi('getChatMember', {chat_id:'@'+c.username, user_id:CURRENT_USER.id});
+      const status = res && res.result && res.result.status;
+      return ['member','administrator','creator'].includes(status);
+    }catch(e){ return false; }
+  }));
+  return results.every(Boolean);
+}
+function renderForceJoinList(){
+  $('join-channel-list').innerHTML = Object.entries(JOIN_CHANNELS||{}).map(([id,c])=>
+    `<a href="${esc(c.link||('https://t.me/'+c.username))}" target="_blank" class="btn btn-ghost btn-block">📢 ${esc(c.name)}</a>`
+  ).join('');
+}
+function finishBoot(){
+  hideLoading();
+  $('app').classList.remove('hidden');
+  $('bottom-nav').classList.remove('hidden');
+  if(IS_ADMIN){ $('admin-gear-btn').classList.remove('hidden'); $('acc-admin-btn').style.display='flex'; }
+}
+async function boot(){
+  initTelegram();
+  if(!IS_ADMIN){
+    const ok = await checkDeviceBinding();
+    if(!ok){ hideLoading(); $('gate-device').classList.remove('hidden'); return; }
+  }
+  await ensureUser();
+  if(USER_DATA && USER_DATA.banned){ showBannedGate(); return; }
+  await loadInitialData();
+  startListeners();
+  renderCategories(); renderTasksEverywhere(); renderBanners(); applySettingsToUI(); renderUserBits();
+  const joined = await checkForceJoin();
+  if(!joined){ renderForceJoinList(); hideLoading(); $('gate-join').classList.remove('hidden'); return; }
+  finishBoot();
+}
+$('join-verify-btn').addEventListener('click', async ()=>{
+  $('join-verify-btn').textContent='যাচাই করা হচ্ছে…'; $('join-verify-btn').disabled=true;
+  const joined = await checkForceJoin();
+  if(joined){ $('gate-join').classList.add('hidden'); finishBoot(); }
+  else{ toast('আপনি এখনো সব চ্যানেলে জয়েন করেননি','error'); $('join-verify-btn').textContent='✅ জয়েন করেছি, ভেরিফাই করুন'; $('join-verify-btn').disabled=false; }
+});
+
+/* ---------------- settings -> UI ---------------- */
+function applySettingsToUI(){
+  const name = SETTINGS.webName || 'META EARN';
+  document.querySelectorAll('.brand-name').forEach(el=>el.textContent = name);
+  document.title = name;
+  $('welcome-title').textContent = `${name} এ স্বাগতম! 👋`;
+  $('welcome-text-body').textContent = SETTINGS.welcomeMessage || 'টাস্ক সম্পন্ন করুন, রেফার করুন এবং সহজেই আয় করুন।';
+  renderReferralLink();
+  applyLogoToMarks();
+  renderLogoPreview();
+  if(!window.__settingsFormFilled){
+    $('set-webname').value = SETTINGS.webName||'META EARN';
+    $('set-support').value = SETTINGS.supportLink||'';
+    $('set-welcome').value = SETTINGS.welcomeMessage||'';
+    $('set-miniapplink').value = SETTINGS.miniAppLink||'';
+    $('set-refbonus').value = SETTINGS.referralBonus!=null?SETTINGS.referralBonus:10;
+    $('set-refcommission').value = SETTINGS.referralCommissionPercent!=null?SETTINGS.referralCommissionPercent:10;
+    $('set-minwd').value = SETTINGS.minWithdraw!=null?SETTINGS.minWithdraw:110;
+    $('set-wdcharge').value = SETTINGS.withdrawCharge!=null?SETTINGS.withdrawCharge:10;
+    $('set-maxwdperday').value = SETTINGS.maxWithdrawPerDay!=null?SETTINGS.maxWithdrawPerDay:5;
+    const methods = SETTINGS.withdrawMethods||{bkash:true,nagad:true,rocket:true};
+    $('toggle-bkash').classList.toggle('on', methods.bkash!==false);
+    $('toggle-nagad').classList.toggle('on', methods.nagad!==false);
+    $('toggle-rocket').classList.toggle('on', methods.rocket!==false);
+    window.__settingsFormFilled = true;
+  }
+}
+function applyLogoToMarks(){
+  const url = SETTINGS.logoUrl;
+  document.querySelectorAll('.brand-mark, #load-mark-el').forEach(el=>{
+    el.innerHTML = url ? `<img src="${esc(url)}" alt="logo">` : 'ME';
+  });
+  const favicon = $('favicon-link');
+  if(favicon) favicon.href = url || '';
+}
+function renderLogoPreview(){
+  const wrap = $('logo-preview-wrap');
+  if(!wrap) return;
+  wrap.innerHTML = SETTINGS.logoUrl
+    ? `<img src="${esc(SETTINGS.logoUrl)}" style="width:56px;height:56px;border-radius:16px;object-fit:cover;border:1px solid var(--border);">`
+    : `<div class="load-mark" style="width:56px;height:56px;border-radius:16px;font-size:18px;">ME</div>`;
+}
+$('save-logo-btn').addEventListener('click', async ()=>{
+  const urlInput = $('set-logo-url').value.trim();
+  const file = $('set-logo-file').files[0];
+  let url = urlInput;
+  if(!url && file){
+    try{ url = await compressImageFile(file, 400, 0.85); }catch(e){ toast('ইমেজ প্রসেস করতে সমস্যা হয়েছে','error'); return; }
+  }
+  if(!url){ toast('URL দিন অথবা ফাইল সিলেক্ট করুন','error'); return; }
+  await db.ref('settings/logoUrl').set(url);
+  $('set-logo-url').value=''; $('set-logo-file').value='';
+  toast('লোগো সেভ হয়েছে','success');
+});
+$('remove-logo-btn').addEventListener('click', async ()=>{
+  if(!confirm('লোগো রিমুভ করে ডিফল্ট মনোগ্রামে ফিরে যাবেন?')) return;
+  await db.ref('settings/logoUrl').remove();
+  toast('লোগো রিমুভ করা হয়েছে','success');
+});
+function openSupportLink(){
+  const link = SETTINGS.supportLink;
+  if(!link){ toast('সাপোর্ট লিংক এখনো সেট করা হয়নি','error'); return; }
+  if(tg && tg.openTelegramLink && link.includes('t.me')) tg.openTelegramLink(link); else window.open(link,'_blank');
+}
+
+/* ---------------- welcome modal ---------------- */
+function showWelcomeModal(){ openModal('welcome-modal'); }
+$('welcome-close-btn').addEventListener('click', async ()=>{
+  closeModal('welcome-modal');
+  await db.ref('users/'+CURRENT_USER.id+'/seenWelcome').set(true);
+});
+
+/* ---------------- categories & tasks (user side) ---------------- */
+function renderCategories(){
+  const cats = Object.entries(CATEGORIES).sort((a,b)=>(a[1].order||0)-(b[1].order||0));
+  const html = cats.map(([id,c])=>`<div class="cat-card" data-catid="${id}"><div class="cat-icon">${esc(c.icon||'📋')}</div><div class="cat-name">${esc(c.name)}</div></div>`).join('')
+    || '<div class="empty-note" style="grid-column:1/-1">কোনো ক্যাটাগরি নেই</div>';
+  $('home-cat-grid').innerHTML = html;
+  $('tasks-cat-grid').innerHTML = html;
+  document.querySelectorAll('[data-catid]').forEach(el=>el.addEventListener('click', ()=>openCategoryTasks(el.dataset.catid)));
+  const sel = $('task-cat-select');
+  sel.innerHTML = cats.map(([id,c])=>`<option value="${id}">${esc(c.icon||'')} ${esc(c.name)}</option>`).join('') || '<option value="">আগে ক্যাটাগরি যোগ করুন</option>';
+}
+function openCategoryTasks(catId){
+  ACTIVE_CAT_ID = catId;
+  switchScreen('tasks');
+  document.querySelector('#screen-tasks .cat-grid').classList.add('hidden');
+  document.querySelector('#screen-tasks .sec-title').classList.add('hidden');
+  $('tasks-cat-detail').classList.remove('hidden');
+  $('tasks-cat-title').textContent = (CATEGORIES[catId]&&CATEGORIES[catId].name)||'Tasks';
+  renderTaskListForCategory(catId);
+}
+$('tasks-back-btn').addEventListener('click', ()=>{
+  ACTIVE_CAT_ID = null;
+  $('tasks-cat-detail').classList.add('hidden');
+  document.querySelector('#screen-tasks .cat-grid').classList.remove('hidden');
+  document.querySelector('#screen-tasks .sec-title').classList.remove('hidden');
+});
+function taskStatusFor(task, taskId){
+  const done = USER_DATA && USER_DATA.completedTasks && USER_DATA.completedTasks[taskId];
+  const limitReached = task.maxCompletions>0 && (task.completions||0) >= task.maxCompletions;
+  if(done) return 'done';
+  if(limitReached) return 'full';
+  return 'todo';
+}
+function taskCardHtml(taskId, t){
+  const status = taskStatusFor(t, taskId);
+  const icon = t.type==='join' ? '📢' : t.type==='link' ? '🔗' : '⭐';
+  const btnLabel = status==='done' ? '✔ সম্পন্ন' : status==='full' ? 'সীমা শেষ' : (t.type==='join'?'Join & Verify':'শুরু করুন');
+  const btnClass = status==='done'?'done':status==='full'?'full':'todo';
+  return `<div class="task-card">
+    <div class="task-icon">${icon}</div>
+    <div class="task-mid">
+      <div class="task-title">${esc(t.title)}</div>
+      <div class="task-meta"><span class="task-reward">+৳${money(t.reward)}</span>${t.maxCompletions>0?`<span class="task-limit">${(t.completions||0)}/${t.maxCompletions} সম্পন্ন</span>`:''}</div>
+    </div>
+    <button class="task-btn ${btnClass}" ${status!=='todo'?'disabled':''} data-taskid="${taskId}">${btnLabel}</button>
+  </div>`;
+}
+function bindTaskButtons(scopeSel){
+  document.querySelectorAll(scopeSel+' [data-taskid]').forEach(btn=>btn.addEventListener('click', ()=>openTaskModal(btn.dataset.taskid)));
+}
+function renderTaskListForCategory(catId){
+  const list = Object.entries(TASKS).filter(([id,t])=>t.categoryId===catId && t.active!==false);
+  $('tasks-list').innerHTML = list.map(([id,t])=>taskCardHtml(id,t)).join('') || '<div class="empty-note">এই ক্যাটাগরিতে কোনো টাস্ক নেই</div>';
+  bindTaskButtons('#tasks-list');
+}
+function renderHomeTasks(){
+  const list = Object.entries(TASKS).filter(([id,t])=>t.active!==false).sort((a,b)=>(b[1].createdAt||0)-(a[1].createdAt||0)).slice(0,6);
+  $('home-task-cnt').textContent = list.length ? (list.length+' টি') : '';
+  $('home-task-list').innerHTML = list.map(([id,t])=>taskCardHtml(id,t)).join('') || '<div class="empty-note">এখনো কোনো টাস্ক নেই</div>';
+  bindTaskButtons('#home-task-list');
+}
+function renderTasksEverywhere(){
+  renderHomeTasks();
+  if(ACTIVE_CAT_ID) renderTaskListForCategory(ACTIVE_CAT_ID);
+  if($('admin-panel').classList.contains('active')) renderAdminTasks();
+}
+function openTaskModal(taskId){
+  const t = TASKS[taskId]; if(!t) return;
+  $('task-modal-title').textContent = t.title;
+  const link = t.type==='join' ? ('https://t.me/'+String(t.target||'').replace('@','')) : (t.target||'#');
+  $('task-modal-body').innerHTML = `
+    <div style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:14px;">${esc(t.description||'')}</div>
+    <div class="a-row-between" style="margin-bottom:16px;"><span class="a-item-sub">রিওয়ার্ড</span><span class="task-reward">+৳${money(t.reward)}</span></div>
+    <a href="${esc(link)}" target="_blank" class="btn btn-ghost btn-block" style="margin-bottom:10px;">🔗 ${t.type==='join'?'চ্যানেলে যান':'লিংকে যান'}</a>
+    <button class="btn btn-primary btn-block" id="task-modal-action-btn">${t.type==='join'?'✅ ভেরিফাই করুন':'🎁 রিওয়ার্ড নিন'}</button>
+  `;
+  $('task-modal-action-btn').addEventListener('click', ()=>completeTask(taskId));
+  openModal('task-modal');
+}
+async function completeTask(taskId){
+  const t = TASKS[taskId]; if(!t) return;
+  if(USER_DATA.completedTasks && USER_DATA.completedTasks[taskId]){ toast('আপনি ইতিমধ্যে এই টাস্কটি সম্পন্ন করেছেন','error'); return; }
+  if(t.maxCompletions>0 && (t.completions||0)>=t.maxCompletions){ toast('এই টাস্কের সীমা শেষ হয়ে গেছে','error'); return; }
+  const btn = $('task-modal-action-btn'); btn.disabled=true; btn.textContent='যাচাই করা হচ্ছে…';
+  try{
+    if(t.type==='join'){
+      const username = String(t.target||'').replace('@','');
+      const res = await tgApi('getChatMember', {chat_id:'@'+username, user_id:CURRENT_USER.id});
+      const status = res && res.result && res.result.status;
+      const joined = ['member','administrator','creator'].includes(status);
+      if(!joined){ toast('আপনি এখনো চ্যানেলে জয়েন করেননি','error'); btn.disabled=false; btn.textContent='✅ ভেরিফাই করুন'; return; }
+    }
+    await creditTaskReward(taskId, t);
+    toast('🎉 ৳'+money(t.reward)+' যোগ হয়েছে!','success');
+    closeModal('task-modal');
+  }catch(err){
+    console.error(err);
+    toast('সমস্যা হয়েছে, আবার চেষ্টা করুন','error');
+    btn.disabled=false; btn.textContent = t.type==='join'?'✅ ভেরিফাই করুন':'🎁 রিওয়ার্ড নিন';
+  }
+}
+async function creditTaskReward(taskId, t){
+  const reward = Number(t.reward)||0;
+  await db.ref('tasks/'+taskId+'/completions').transaction(v=>(v||0)+1);
+  await db.ref('users/'+CURRENT_USER.id+'/completedTasks/'+taskId).set(Date.now());
+  await db.ref('users/'+CURRENT_USER.id+'/balance').transaction(v=>(Number(v)||0)+reward);
+  await db.ref('users/'+CURRENT_USER.id+'/totalEarned').transaction(v=>(Number(v)||0)+reward);
+  const referrerId = USER_DATA.referredBy;
+  if(referrerId){
+    const commissionPct = Number(SETTINGS.referralCommissionPercent||0);
+    const commission = Math.round(reward*commissionPct)/100;
+    if(commission>0){
+      await db.ref('users/'+referrerId+'/balance').transaction(v=>(Number(v)||0)+commission);
+      await db.ref('users/'+referrerId+'/referralEarnings').transaction(v=>(Number(v)||0)+commission);
+    }
+    if(!USER_DATA.referralBonusPaid){
+      const flatBonus = Number(SETTINGS.referralBonus||0);
+      if(flatBonus>0){
+        await db.ref('users/'+referrerId+'/balance').transaction(v=>(Number(v)||0)+flatBonus);
+        await db.ref('users/'+referrerId+'/referralEarnings').transaction(v=>(Number(v)||0)+flatBonus);
+      }
+      await db.ref('users/'+CURRENT_USER.id+'/referralBonusPaid').set(true);
+    }
+  }
+}
+
+/* ---------------- banners ---------------- */
+function renderBanners(){
+  const arr = Object.entries(BANNERS).sort((a,b)=>(a[1].order||0)-(b[1].order||0));
+  $('banner-track').innerHTML = arr.map(([id,b])=>`<div class="banner-slide"><img src="${esc(b.url)}" loading="lazy"></div>`).join('')
+    || `<div class="banner-slide" style="display:flex;align-items:center;justify-content:center;background:var(--aurora-soft);"><div style="font-family:var(--font-display);font-weight:700;">META EARN</div></div>`;
+  $('banner-dots').innerHTML = arr.map((_,i)=>`<div class="banner-dot ${i===0?'active':''}"></div>`).join('');
+  const track = $('banner-track');
+  track.onscroll = ()=>{
+    const idx = Math.round(track.scrollLeft/Math.max(1,track.clientWidth));
+    document.querySelectorAll('.banner-dot').forEach((d,i)=>d.classList.toggle('active', i===idx));
+  };
+  if($('admin-panel').classList.contains('active')) renderAdminBanners();
+}
+
+/* ---------------- user info render ---------------- */
+function renderUserBits(){
+  if(!USER_DATA) return;
+  $('home-balance').textContent = money(USER_DATA.balance);
+  const circumference = 170;
+  const pct = Math.min(1, (Number(USER_DATA.totalEarned)||0)/500);
+  $('home-ring').setAttribute('stroke-dasharray', circumference);
+  $('home-ring').setAttribute('stroke-dashoffset', circumference - circumference*pct);
+  $('acc-name').textContent = USER_DATA.name||CURRENT_USER.name;
+  $('acc-id').textContent = 'ID: '+CURRENT_USER.id;
+  if(CURRENT_USER.photoUrl){ $('acc-avatar').innerHTML = `<img src="${esc(CURRENT_USER.photoUrl)}">`; }
+  else{ $('acc-avatar').textContent = (USER_DATA.name||'U').trim().charAt(0).toUpperCase(); }
+  $('ref-count').textContent = USER_DATA.referralCount||0;
+  $('ref-earn').textContent = '৳'+money(USER_DATA.referralEarnings||0);
+  if(!USER_DATA.seenWelcome) showWelcomeModal();
+}
+function renderReferralLink(){
+  const base = SETTINGS.miniAppLink;
+  const link = base ? `${base}?startapp=ref_${CURRENT_USER.id}` : '';
+  $('ref-link-text').textContent = link || 'অ্যাডমিন এখনো Mini App Link সেট করেননি';
+  $('ref-bonus-amt').textContent = '৳'+money(SETTINGS.referralBonus||0);
+  $('ref-copy-btn').onclick = ()=>{ if(!link) return; navigator.clipboard.writeText(link).then(()=>toast('কপি হয়েছে!','success')); };
+  $('ref-share-btn').onclick = ()=>{
+    if(!link){ toast('লিংক এখনো সেট হয়নি','error'); return; }
+    const url = 'https://t.me/share/url?url='+encodeURIComponent(link)+'&text='+encodeURIComponent((SETTINGS.webName||'META EARN')+' এ যোগ দিন এবং আয় শুরু করুন!');
+    if(tg && tg.openTelegramLink) tg.openTelegramLink(url); else window.open(url,'_blank');
+  };
+}
+function renderLeaders(usersObj){
+  const arr = Object.entries(usersObj).map(([id,u])=>({id,...u})).sort((a,b)=>(b.balance||0)-(a.balance||0)).slice(0,15);
+  const top3 = arr.slice(0,3);
+  const order = [top3[1],top3[0],top3[2]];
+  $('leaders-podium').innerHTML = order.map((u,i)=>{
+    if(!u) return '<div class="podium-card"></div>';
+    const rank = i===1?1:i===0?2:3;
+    return `<div class="podium-card ${rank===1?'p1':''}">${rank===1?'<div class="podium-crown">👑</div>':''}
+      <div class="podium-ava">${esc((u.name||'U').trim().charAt(0).toUpperCase())}</div>
+      <div class="podium-name">${esc(u.name||'User')}</div>
+      <div class="podium-amt">৳${money(u.balance)}</div></div>`;
+  }).join('');
+  $('leaders-list').innerHTML = arr.slice(3).map((u,i)=>`<div class="lead-row"><div class="lead-rank">${i+4}</div><div class="lead-name">${esc(u.name||'User')}</div><div class="lead-amt">৳${money(u.balance)}</div></div>`).join('')
+    || '<div class="empty-note">এখনো কোনো তথ্য নেই</div>';
+}
+function renderAccountHistory(wdObj){
+  const arr = Object.entries(wdObj).sort((a,b)=>(b[1].requestedAt||0)-(a[1].requestedAt||0));
+  $('acc-history-list').innerHTML = arr.map(([id,w])=>`
+    <div class="wd-row"><div style="flex:1;"><div class="wd-amt">৳${money(w.amount)} · ${esc(w.method)}</div><div class="wd-meta">${esc(w.account)} · ${new Date(w.requestedAt).toLocaleString()}</div></div>
+    <div class="status-pill ${w.status}">${w.status==='pending'?'অপেক্ষমান':w.status==='approved'?'সম্পন্ন':'বাতিল'}</div></div>`).join('')
+    || '<div class="empty-note">কোনো উত্তোলন নেই</div>';
+}
+
+/* ---------------- withdraw ---------------- */
+function openWithdrawModal(){
+  const methods = SETTINGS.withdrawMethods||{bkash:true,nagad:true,rocket:true};
+  const grid = $('withdraw-method-grid');
+  const opts = [['bkash','Bkash'],['nagad','Nagad'],['rocket','Rocket']].filter(([k])=>methods[k]!==false);
+  grid.innerHTML = opts.map(([k,l],i)=>`<div class="method-opt ${i===0?'active':''}" data-method="${k}">${l}</div>`).join('') || '<div class="empty-note" style="grid-column:1/-1">কোনো মেথড চালু নেই</div>';
+  grid.querySelectorAll('.method-opt').forEach(el=>el.addEventListener('click', ()=>{ grid.querySelectorAll('.method-opt').forEach(o=>o.classList.remove('active')); el.classList.add('active'); }));
+  $('withdraw-daylimit-note').textContent = `আপনি দিনে সর্বোচ্চ ${SETTINGS.maxWithdrawPerDay||5} বার টাকা তুলতে পারবেন। সর্বনিম্ন উত্তোলন ৳${money(SETTINGS.minWithdraw||110)}, চার্জ ৳${money(SETTINGS.withdrawCharge||10)}।`;
+  $('withdraw-account').value=''; $('withdraw-amount').value='';
+  updateWithdrawCalc();
+  openModal('withdraw-modal');
+}
+function updateWithdrawCalc(){
+  const amt = Number($('withdraw-amount').value)||0;
+  const charge = Number(SETTINGS.withdrawCharge!=null?SETTINGS.withdrawCharge:10);
+  const get = Math.max(0, amt-charge);
+  $('withdraw-calc-note').textContent = `চার্জ: ৳${money(charge)} · আপনি পাবেন: ৳${money(get)}`;
+}
+async function submitWithdraw(){
+  const methodEl = document.querySelector('#withdraw-method-grid .method-opt.active');
+  if(!methodEl){ toast('পেমেন্ট মেথড সিলেক্ট করুন','error'); return; }
+  const account = $('withdraw-account').value.trim();
+  const amount = Number($('withdraw-amount').value);
+  const min = Number(SETTINGS.minWithdraw||110);
+  if(!account){ toast('অ্যাকাউন্ট নাম্বার দিন','error'); return; }
+  if(!amount || amount < min){ toast(`সর্বনিম্ন ৳${money(min)} উত্তোলন করা যাবে`,'error'); return; }
+  if(amount > Number(USER_DATA.balance||0)){ toast('পর্যাপ্ত ব্যালেন্স নেই','error'); return; }
+  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+  const snap = await db.ref('withdrawals').orderByChild('userId').equalTo(CURRENT_USER.id).once('value');
+  let todayCount=0;
+  snap.forEach(ch=>{ const v=ch.val(); if((v.requestedAt||0) >= todayStart.getTime()) todayCount++; });
+  const maxPerDay = Number(SETTINGS.maxWithdrawPerDay||5);
+  if(todayCount >= maxPerDay){ toast('আজকের উত্তোলনের সীমা শেষ','error'); return; }
+  const btn = $('withdraw-submit-btn'); btn.disabled=true; btn.textContent='অপেক্ষা করুন…';
+  try{
+    await db.ref('users/'+CURRENT_USER.id+'/balance').transaction(v=>(Number(v)||0) - amount);
+    await db.ref('withdrawals').push({
+      userId:CURRENT_USER.id, userName:USER_DATA.name||CURRENT_USER.name, method:methodEl.dataset.method,
+      account, amount, charge:Number(SETTINGS.withdrawCharge||10), status:'pending', requestedAt: Date.now()
+    });
+    toast('✅ উত্তোলনের অনুরোধ সফল হয়েছে!','success');
+    closeModal('withdraw-modal');
+  }catch(err){ console.error(err); toast('সমস্যা হয়েছে, আবার চেষ্টা করুন','error'); }
+  btn.disabled=false; btn.textContent='Submit Request';
+}
+
+/* ---------------- nav & top-level bindings ---------------- */
+document.querySelectorAll('.nav-tab').forEach(tab=>tab.addEventListener('click', ()=>switchScreen(tab.dataset.screen)));
+document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click', ()=>closeModal(b.dataset.close)));
+$('withdraw-open-btn').addEventListener('click', openWithdrawModal);
+$('home-refer-btn').addEventListener('click', ()=>switchScreen('refer'));
+$('withdraw-amount').addEventListener('input', updateWithdrawCalc);
+$('withdraw-submit-btn').addEventListener('click', submitWithdraw);
+$('acc-history-btn').addEventListener('click', ()=>$('acc-history-wrap').classList.toggle('hidden'));
+$('acc-support-btn').addEventListener('click', openSupportLink);
+$('support-header-btn').addEventListener('click', openSupportLink);
+$('banned-support-btn').addEventListener('click', openSupportLink);
+$('acc-admin-btn').addEventListener('click', openAdminPanel);
+$('admin-gear-btn').addEventListener('click', openAdminPanel);
+$('admin-close-btn').addEventListener('click', ()=>$('admin-panel').classList.remove('active'));
+function openAdminPanel(){ if(!IS_ADMIN){ toast('অ্যাক্সেস নেই','error'); return; } $('admin-panel').classList.add('active'); renderAdminAll(); }
+document.querySelectorAll('.a-tab').forEach(tab=>tab.addEventListener('click', ()=>{
+  document.querySelectorAll('.a-tab').forEach(t=>t.classList.remove('active')); tab.classList.add('active');
+  document.querySelectorAll('.a-screen').forEach(s=>s.classList.remove('active')); $('a-'+tab.dataset.atab).classList.add('active');
+}));
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  boot().catch(err=>{ console.error(err); toast('লোড করতে সমস্যা হয়েছে, রিফ্রেশ করুন','error'); hideLoading(); });
+});
+</script>
+<script>
+/* ---------------- ADMIN PANEL ---------------- */
+function renderAdminAll(){
+  renderAdminDash(); renderAdminCats(); renderAdminTasks(); renderAdminJoin();
+  renderAdminWithdrawals(); renderAdminUsers(); renderAdminBanners();
+}
+
+/* dashboard */
+async function renderAdminDash(){
+  const usersSnap = await db.ref('users').once('value');
+  const usersObj = usersSnap.val()||{};
+  const totalUsers = Object.keys(usersObj).length;
+  const totalBalance = Object.values(usersObj).reduce((s,u)=>s+(Number(u.balance)||0),0);
+  $('a-stat-users').textContent = totalUsers;
+  $('a-stat-balance').textContent = '৳'+money(totalBalance);
+  const wdSnap = await db.ref('withdrawals').once('value');
+  const wdObj = wdSnap.val()||{};
+  const pending = Object.values(wdObj).filter(w=>w.status==='pending').length;
+  $('a-stat-pending').textContent = pending;
+  $('a-stat-tasks').textContent = Object.values(TASKS||{}).filter(t=>t.active!==false).length;
+}
+
+/* categories admin */
+function renderAdminCats(){
+  const cats = Object.entries(CATEGORIES).sort((a,b)=>(a[1].order||0)-(b[1].order||0));
+  $('cat-admin-list').innerHTML = cats.map(([id,c])=>`
+    <div class="a-card a-row-between">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="cat-icon" style="width:34px;height:34px;font-size:16px;">${esc(c.icon||'📋')}</div>
+        <div class="a-item-title">${esc(c.name)}</div>
+      </div>
+      <div class="a-mini-btns"><button class="mini-btn" data-delcat="${id}">🗑️</button></div>
+    </div>`).join('') || '<div class="empty-note">কোনো ক্যাটাগরি নেই</div>';
+  document.querySelectorAll('[data-delcat]').forEach(b=>b.addEventListener('click', ()=>{
+    if(confirm('ক্যাটাগরি ও এর সব টাস্ক ডিলিট হয়ে যাবে। নিশ্চিত?')) deleteCategory(b.dataset.delcat);
+  }));
+}
+$('cat-add-btn').addEventListener('click', async ()=>{
+  const name = $('cat-name-input').value.trim();
+  const icon = $('cat-icon-input').value.trim()||'📋';
+  if(!name){ toast('নাম দিন','error'); return; }
+  await db.ref('categories').push({name, icon, order: Date.now(), createdAt: Date.now()});
+  $('cat-name-input').value=''; $('cat-icon-input').value='';
+  renderAdminCats();
+  toast('যোগ করা হয়েছে','success');
+});
+async function deleteCategory(id){
+  await db.ref('categories/'+id).remove();
+  const toDel = Object.entries(TASKS).filter(([tid,t])=>t.categoryId===id).map(([tid])=>tid);
+  for(const tid of toDel) await db.ref('tasks/'+tid).remove();
+  renderAdminCats(); renderAdminTasks();
+  toast('ডিলিট হয়েছে','success');
+}
+
+/* tasks admin */
+function renderAdminTasks(){
+  const list = Object.entries(TASKS);
+  $('task-admin-list').innerHTML = list.map(([id,t])=>{
+    const catName = (CATEGORIES[t.categoryId]&&CATEGORIES[t.categoryId].name)||'—';
+    return `<div class="a-card">
+      <div class="a-row-between">
+        <div><div class="a-item-title">${esc(t.title)}</div><div class="a-item-sub">${esc(catName)} · ৳${money(t.reward)} · ${(t.completions||0)}${t.maxCompletions>0?'/'+t.maxCompletions:''} সম্পন্ন</div></div>
+        <div class="a-mini-btns">
+          <div class="mini-btn" data-toggletask="${id}">${t.active!==false?'⏸️':'▶️'}</div>
+          <div class="mini-btn" data-deltask="${id}">🗑️</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty-note">কোনো টাস্ক নেই</div>';
+  document.querySelectorAll('[data-deltask]').forEach(b=>b.addEventListener('click', ()=>{
+    if(confirm('টাস্ক ডিলিট করবেন?')){ db.ref('tasks/'+b.dataset.deltask).remove().then(renderAdminTasks); }
+  }));
+  document.querySelectorAll('[data-toggletask]').forEach(b=>b.addEventListener('click', ()=>{
+    const id=b.dataset.toggletask; const cur = TASKS[id].active!==false;
+    db.ref('tasks/'+id+'/active').set(!cur).then(renderAdminTasks);
+  }));
+}
+$('task-add-btn').addEventListener('click', async ()=>{
+  const categoryId = $('task-cat-select').value;
+  const title = $('task-title-input').value.trim();
+  const description = $('task-desc-input').value.trim();
+  const type = $('task-type-select').value;
+  const target = $('task-target-input').value.trim();
+  const reward = Number($('task-reward-input').value)||0;
+  const maxCompletions = Number($('task-limit-input').value)||0;
+  if(!categoryId){ toast('আগে একটি ক্যাটাগরি যোগ করুন','error'); return; }
+  if(!title||!reward){ toast('টাইটেল ও রিওয়ার্ড দিন','error'); return; }
+  if(type==='join' && !target){ toast('চ্যানেল ইউজারনেম দিন','error'); return; }
+  await db.ref('tasks').push({categoryId,title,description,type,target,reward,maxCompletions,completions:0,active:true,createdAt:Date.now()});
+  ['task-title-input','task-desc-input','task-target-input','task-reward-input','task-limit-input'].forEach(id=>$(id).value='');
+  renderAdminTasks();
+  toast('টাস্ক যোগ করা হয়েছে','success');
+});
+
+/* force join admin */
+function renderAdminJoin(){
+  $('join-admin-list').innerHTML = Object.entries(JOIN_CHANNELS).map(([id,c])=>`
+    <div class="a-card a-row-between">
+      <div><div class="a-item-title">${esc(c.name)}</div><div class="a-item-sub">@${esc(c.username)}</div></div>
+      <div class="mini-btn" data-deljoin="${id}">🗑️</div>
+    </div>`).join('') || '<div class="empty-note">কোনো ফোর্স-জয়েন চ্যানেল নেই</div>';
+  document.querySelectorAll('[data-deljoin]').forEach(b=>b.addEventListener('click', ()=>{
+    db.ref('forceJoinChannels/'+b.dataset.deljoin).remove().then(renderAdminJoin);
+  }));
+}
+$('join-add-btn').addEventListener('click', async ()=>{
+  const name=$('join-name-input').value.trim();
+  const username=$('join-username-input').value.trim().replace('@','');
+  const link=$('join-link-input').value.trim() || ('https://t.me/'+username);
+  if(!name||!username){ toast('নাম ও ইউজারনেম দিন','error'); return; }
+  await db.ref('forceJoinChannels').push({name,username,link});
+  ['join-name-input','join-username-input','join-link-input'].forEach(id=>$(id).value='');
+  renderAdminJoin();
+  toast('যোগ করা হয়েছে','success');
+});
+
+/* withdrawals admin */
+$('withdraw-filter-select').addEventListener('change', renderAdminWithdrawals);
+async function renderAdminWithdrawals(){
+  const snap = await db.ref('withdrawals').once('value');
+  const obj = snap.val()||{};
+  const filter = $('withdraw-filter-select').value;
+  const arr = Object.entries(obj).filter(([id,w])=>filter==='all'||w.status===filter).sort((a,b)=>(b[1].requestedAt||0)-(a[1].requestedAt||0));
+  $('withdraw-admin-list').innerHTML = arr.map(([id,w])=>`
+    <div class="a-card">
+      <div class="a-row-between">
+        <div><div class="a-item-title">${esc(w.userName)} · ৳${money(w.amount)}</div><div class="a-item-sub">${esc(w.method)} — ${esc(w.account)}</div><div class="a-item-sub">${new Date(w.requestedAt).toLocaleString()}</div></div>
+        <div class="status-pill ${w.status}">${w.status}</div>
+      </div>
+      ${w.status==='pending'?`<div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="btn btn-success btn-sm" data-approve="${id}">✔ Approve</button>
+        <button class="btn btn-danger btn-sm" data-reject="${id}">✕ Reject</button>
+      </div>`:''}
+    </div>`).join('') || '<div class="empty-note">কোনো তথ্য নেই</div>';
+  document.querySelectorAll('[data-approve]').forEach(b=>b.addEventListener('click', ()=>processWithdrawal(b.dataset.approve,'approved')));
+  document.querySelectorAll('[data-reject]').forEach(b=>b.addEventListener('click', ()=>processWithdrawal(b.dataset.reject,'rejected')));
+}
+async function processWithdrawal(id, status){
+  const snap = await db.ref('withdrawals/'+id).once('value');
+  const w = snap.val(); if(!w) return;
+  await db.ref('withdrawals/'+id).update({status, processedAt:Date.now()});
+  if(status==='rejected'){
+    await db.ref('users/'+w.userId+'/balance').transaction(v=>(Number(v)||0)+Number(w.amount));
+  }
+  toast(status==='approved'?'অনুমোদিত হয়েছে':'বাতিল ও রিফান্ড করা হয়েছে','success');
+  renderAdminWithdrawals(); renderAdminDash();
+}
+
+/* users admin */
+$('user-search-input').addEventListener('input', renderAdminUsers);
+async function renderAdminUsers(){
+  const snap = await db.ref('users').once('value');
+  const obj = snap.val()||{};
+  const q = $('user-search-input').value.trim().toLowerCase();
+  const arr = Object.entries(obj).filter(([id,u])=> !q || (u.name||'').toLowerCase().includes(q) || id.includes(q)).sort((a,b)=>(b[1].balance||0)-(a[1].balance||0)).slice(0,60);
+  $('user-admin-list').innerHTML = arr.map(([id,u])=>`
+    <div class="a-card a-row-between">
+      <div><div class="a-item-title">${esc(u.name||'User')} ${u.banned?'🚫':''}</div><div class="a-item-sub">ID: ${id} · ৳${money(u.balance)} · রেফার: ${u.referralCount||0}</div></div>
+      <button class="btn ${u.banned?'btn-success':'btn-danger'} btn-sm" data-toggleban="${id}">${u.banned?'Unban':'Ban'}</button>
+    </div>`).join('') || '<div class="empty-note">কোনো ইউজার নেই</div>';
+  document.querySelectorAll('[data-toggleban]').forEach(b=>b.addEventListener('click', async ()=>{
+    const id=b.dataset.toggleban;
+    const cur = obj[id].banned;
+    if(!cur && !confirm('এই ইউজারকে ব্যান করবেন?')) return;
+    await db.ref('users/'+id+'/banned').set(!cur);
+    toast(!cur?'ব্যান করা হয়েছে':'আনব্যান করা হয়েছে','success');
+    renderAdminUsers();
+  }));
+}
+
+/* banners admin */
+function renderAdminBanners(){
+  $('banner-admin-list').innerHTML = Object.entries(BANNERS).map(([id,b])=>`
+    <div class="a-card"><img class="banner-thumb" src="${esc(b.url)}"><div class="a-row-between"><div class="a-item-sub">যোগ হয়েছে</div><button class="btn btn-danger btn-sm" data-delbanner="${id}">🗑️ Remove</button></div></div>
+  `).join('') || '<div class="empty-note">কোনো ব্যানার নেই</div>';
+  document.querySelectorAll('[data-delbanner]').forEach(b=>b.addEventListener('click', ()=>{
+    db.ref('banners/'+b.dataset.delbanner).remove().then(renderAdminBanners);
+  }));
+}
+function compressImageFile(file, maxW=900, quality=0.75){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onload = e=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const scale = Math.min(1, maxW/img.width);
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width*scale); c.height = Math.round(img.height*scale);
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        resolve(c.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+$('banner-add-btn').addEventListener('click', async ()=>{
+  const urlInput = $('banner-url-input').value.trim();
+  const file = $('banner-file-input').files[0];
+  let url = urlInput;
+  if(!url && file){
+    try{ url = await compressImageFile(file); }catch(e){ toast('ইমেজ প্রসেস করতে সমস্যা হয়েছে','error'); return; }
+  }
+  if(!url){ toast('ইমেজ URL দিন অথবা ফাইল সিলেক্ট করুন','error'); return; }
+  await db.ref('banners').push({url, order:Date.now()});
+  $('banner-url-input').value=''; $('banner-file-input').value='';
+  renderAdminBanners();
+  toast('ব্যানার যোগ করা হয়েছে','success');
+});
+
+/* broadcast */
+$('broadcast-send-btn').addEventListener('click', async ()=>{
+  const text = $('broadcast-text-input').value.trim();
+  const img = $('broadcast-image-input').value.trim();
+  if(!text){ toast('মেসেজ লিখুন','error'); return; }
+  if(!confirm('সব ইউজারকে এই মেসেজ পাঠাতে চান?')) return;
+  const btn = $('broadcast-send-btn'); btn.disabled=true;
+  const snap = await db.ref('users').once('value');
+  const ids = Object.keys(snap.val()||{});
+  let sent=0;
+  for(const id of ids){
+    if(!/^\d+$/.test(id)) continue;
+    await tgSendMessage(id, text, img||null);
+    sent++;
+    $('broadcast-progress').textContent = `পাঠানো হয়েছে: ${sent}/${ids.length}`;
+    await new Promise(r=>setTimeout(r, 40));
+  }
+  btn.disabled=false;
+  toast(`ব্রডকাস্ট সম্পন্ন — ${sent} জনকে পাঠানো হয়েছে`,'success');
+});
+
+/* settings save */
+$('save-general-btn').addEventListener('click', async ()=>{
+  await db.ref('settings').update({
+    webName: $('set-webname').value.trim()||'META EARN',
+    supportLink: $('set-support').value.trim(),
+    welcomeMessage: $('set-welcome').value.trim(),
+    miniAppLink: $('set-miniapplink').value.trim()
+  });
+  toast('সেভ হয়েছে','success');
+});
+$('save-refsettings-btn').addEventListener('click', async ()=>{
+  await db.ref('settings').update({
+    referralBonus: Number($('set-refbonus').value)||0,
+    referralCommissionPercent: Number($('set-refcommission').value)||0
+  });
+  toast('সেভ হয়েছে','success');
+});
+document.querySelectorAll('.toggle').forEach(t=>t.addEventListener('click', ()=>t.classList.toggle('on')));
+$('save-wdsettings-btn').addEventListener('click', async ()=>{
+  await db.ref('settings').update({
+    minWithdraw: Number($('set-minwd').value)||110,
+    withdrawCharge: Number($('set-wdcharge').value)||10,
+    maxWithdrawPerDay: Number($('set-maxwdperday').value)||5,
+    withdrawMethods: {
+      bkash: $('toggle-bkash').classList.contains('on'),
+      nagad: $('toggle-nagad').classList.contains('on'),
+      rocket: $('toggle-rocket').classList.contains('on')
+    }
+  });
+  toast('সেভ হয়েছে','success');
+});
+</script>
+</body>
+</html>
