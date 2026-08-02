@@ -152,6 +152,10 @@ input::placeholder,textarea::placeholder{color:var(--text-dim2);}
 .btn[disabled]{opacity:.45;pointer-events:none;}
 
 .banner-wrap{margin-bottom:16px;border-radius:var(--radius-lg);overflow:hidden;position:relative;animation:riseUp .5s ease both;background:var(--elev-1);border:1px solid var(--border);}
+.activity-ticker{display:flex;align-items:center;gap:9px;background:var(--glass);border:1px solid var(--border);border-radius:12px;padding:9px 14px;margin-bottom:14px;animation:riseUp .5s ease both;}
+.ticker-dot{width:7px;height:7px;border-radius:50%;background:var(--success);flex-shrink:0;box-shadow:0 0 0 0 rgba(31,170,110,.5);animation:tickerPulse 1.8s ease-in-out infinite;}
+@keyframes tickerPulse{0%{box-shadow:0 0 0 0 rgba(31,170,110,.45)}70%{box-shadow:0 0 0 6px rgba(31,170,110,0)}100%{box-shadow:0 0 0 0 rgba(31,170,110,0)}}
+.ticker-text{font-size:11.5px;font-weight:600;color:var(--text-dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:opacity .22s ease;flex:1;}
 .banner-track{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;}
 .banner-track::-webkit-scrollbar{display:none;}
 .banner-slide{flex:0 0 100%;scroll-snap-align:start;aspect-ratio:16/7;}
@@ -390,6 +394,11 @@ input::placeholder,textarea::placeholder{color:var(--text-dim2);}
       </div>
     </div>
 
+    <div class="activity-ticker">
+      <span class="ticker-dot"></span>
+      <span class="ticker-text" id="ticker-text">লোড হচ্ছে…</span>
+    </div>
+
     <div class="banner-wrap">
       <div class="banner-track" id="banner-track"></div>
       <div class="banner-dots" id="banner-dots"></div>
@@ -559,8 +568,15 @@ input::placeholder,textarea::placeholder{color:var(--text-dim2);}
               <option value="number">Number</option>
             </select>
           </div>
+          <select id="tf-restrict-input" style="margin-top:8px;">
+            <option value="none">ফরম্যাট ভ্যালিডেশন: কোনো বিধিনিষেধ নেই</option>
+            <option value="gmail">শুধু Gmail Address (example@gmail.com)</option>
+            <option value="facebook">শুধু Facebook প্রোফাইল লিংক (facebook.com/...)</option>
+            <option value="instagram">শুধু Instagram প্রোফাইল লিংক (instagram.com/...)</option>
+          </select>
           <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;font-weight:600;color:var(--text-dim);text-transform:none;letter-spacing:0;"><input type="checkbox" id="tf-required-input" checked style="width:auto;"> আবশ্যক ফিল্ড</label>
           <button class="btn btn-ghost btn-block btn-sm" id="tf-add-btn" style="margin-top:8px;">+ ফিল্ড যোগ করুন</button>
+          <div class="help-note">ভ্যালিডেশন শুধু ফরম্যাট চেক করে (যেমন @gmail.com দিয়ে শেষ হচ্ছে কিনা, বা facebook.com/instagram.com লিংক কিনা) — অ্যাকাউন্টটা সত্যিই আছে/অ্যাক্টিভ কিনা তা যাচাই হয় না, সেটা Submissions ট্যাবে আপনাকে ম্যানুয়ালি দেখে Approve/Reject করতে হবে।</div>
           <div class="help-note">নোট: পাসওয়ার্ড/লগইন তথ্য সংগ্রহের অপশন ইচ্ছাকৃতভাবে রাখা হয়নি — এটি Google/Meta নীতি ভঙ্গ করে ও অ্যাকাউন্ট মিসইউজের ঝুঁকি তৈরি করে। প্রোফাইল লিংক/ইউজারনেম/স্ক্রিনশট লিংক দিয়ে ভেরিফাই করুন।</div>
         </div>
         <div class="field" id="task-target-wrap"><label>চ্যানেল ইউজারনেম / লিংক (join, link, custom টাস্কের জন্য)</label><input id="task-target-input" placeholder="@username অথবা https://link"></div>
@@ -722,6 +738,47 @@ function switchScreen(name){
   $('screen-'+name).classList.add('active');
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.toggle('active', t.dataset.screen===name));
 }
+
+/* ---------------- live activity ticker ---------------- */
+function maskName(name){
+  const first = (name||'User').trim().split(' ')[0] || 'User';
+  if(first.length<=2) return first+'***';
+  return first.slice(0,2)+'*'.repeat(Math.min(4,Math.max(2,first.length-2)));
+}
+function logActivity(type, userName, amount){
+  db.ref('activityLog').push({type, userName: maskName(userName), amount: amount||0, ts: Date.now()}).catch(()=>{});
+}
+let TICKER_ITEMS = [];
+let TICKER_IDX = 0;
+let TICKER_TIMER = null;
+function tickerMessage(item){
+  if(item.type==='task') return `🎉 ${esc(item.userName)} এইমাত্র ৳${money(item.amount)} আয় করলো`;
+  if(item.type==='withdraw') return `💸 ${esc(item.userName)} ৳${money(item.amount)} উইথড্র করলো`;
+  if(item.type==='join') return `👋 ${esc(item.userName)} নতুন যোগ দিলো`;
+  return `✨ ${esc(item.userName)} অ্যাক্টিভিটি করলো`;
+}
+function renderTickerFrame(){
+  const el = $('ticker-text');
+  if(!el) return;
+  if(TICKER_ITEMS.length===0){ el.textContent = 'এখনো কোনো অ্যাক্টিভিটি নেই'; return; }
+  el.style.opacity='0';
+  setTimeout(()=>{ el.innerHTML = tickerMessage(TICKER_ITEMS[TICKER_IDX]); el.style.opacity='1'; }, 220);
+}
+function startActivityTicker(){
+  db.ref('activityLog').orderByKey().limitToLast(20).on('value', snap=>{
+    const obj = snap.val()||{};
+    TICKER_ITEMS = Object.values(obj).sort((a,b)=>(b.ts||0)-(a.ts||0));
+    TICKER_IDX = 0;
+    renderTickerFrame();
+  });
+  if(TICKER_TIMER) clearInterval(TICKER_TIMER);
+  TICKER_TIMER = setInterval(()=>{
+    if(TICKER_ITEMS.length===0) return;
+    TICKER_IDX = (TICKER_IDX+1) % TICKER_ITEMS.length;
+    renderTickerFrame();
+  }, 3600);
+}
+
 async function tgApi(method, params){
   const qs = new URLSearchParams(params).toString();
   const res = await fetch(`${TG_API}${method}?${qs}`);
@@ -824,6 +881,7 @@ async function ensureUser(){
   await ref.set(newUser);
   USER_DATA = newUser;
   if(referredBy){ await db.ref('users/'+referredBy+'/referralCount').transaction(v=>(v||0)+1); }
+  logActivity('join', newUser.name, 0);
 }
 
 /* ---------------- initial data + live listeners ---------------- */
@@ -875,6 +933,7 @@ function finishBoot(){
   $('app').classList.remove('hidden');
   $('bottom-nav').classList.remove('hidden');
   if(IS_ADMIN){ $('admin-gear-btn').classList.remove('hidden'); $('acc-admin-btn').style.display='flex'; }
+  startActivityTicker();
 }
 async function boot(){
   initTelegram();
@@ -1142,6 +1201,7 @@ async function awardTaskReward(userId, taskId, t){
       await db.ref('users/'+userId+'/referralBonusPaid').set(true);
     }
   }
+  logActivity('task', uData.name||'User', reward);
 }
 async function creditTaskReward(taskId, t){
   await awardTaskReward(CURRENT_USER.id, taskId, t);
@@ -1340,11 +1400,12 @@ async function deleteCategory(id){
 }
 
 /* tasks admin */
+const RESTRICT_LABELS = {none:'', gmail:'📧 Gmail', facebook:'📘 Facebook লিংক', instagram:'📸 Instagram লিংক'};
 let taskFieldsDraft = [];
 function renderTaskFieldsDraft(){
   $('task-fields-list').innerHTML = taskFieldsDraft.map((f,i)=>`
     <div class="a-row-between" style="padding:7px 0;border-bottom:1px solid var(--border);">
-      <div><div class="a-item-title" style="font-size:12.5px;">${esc(f.label)} ${f.required?'*':''}</div><div class="a-item-sub">${esc(f.type)}</div></div>
+      <div><div class="a-item-title" style="font-size:12.5px;">${esc(f.label)} ${f.required?'*':''}</div><div class="a-item-sub">${esc(f.type)}${RESTRICT_LABELS[f.restrict]?' · '+RESTRICT_LABELS[f.restrict]:''}</div></div>
       <button class="mini-btn" data-rmfield="${i}">✕</button>
     </div>`).join('') || '<div class="empty-note">কোনো ফিল্ড যোগ করা হয়নি</div>';
   document.querySelectorAll('[data-rmfield]').forEach(b=>b.addEventListener('click', ()=>{
@@ -1355,10 +1416,12 @@ renderTaskFieldsDraft();
 $('tf-add-btn').addEventListener('click', ()=>{
   const label = $('tf-label-input').value.trim();
   const type = $('tf-type-input').value;
+  const restrict = $('tf-restrict-input').value;
   const required = $('tf-required-input').checked;
   if(!label){ toast('ফিল্ডের নাম দিন','error'); return; }
-  taskFieldsDraft.push({id:'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), label, type, required});
+  taskFieldsDraft.push({id:'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), label, type, restrict, required});
   $('tf-label-input').value='';
+  $('tf-restrict-input').value='none';
   renderTaskFieldsDraft();
 });
 $('task-type-select').addEventListener('change', ()=>{
@@ -1499,6 +1562,8 @@ async function processWithdrawal(id, status){
   await db.ref('withdrawals/'+id).update({status, processedAt:Date.now()});
   if(status==='rejected'){
     await db.ref('users/'+w.userId+'/balance').transaction(v=>(Number(v)||0)+Number(w.amount));
+  }else{
+    logActivity('withdraw', w.userName||'User', w.amount);
   }
   toast(status==='approved'?'অনুমোদিত হয়েছে':'বাতিল ও রিফান্ড করা হয়েছে','success');
   renderAdminWithdrawals(); renderAdminDash();
