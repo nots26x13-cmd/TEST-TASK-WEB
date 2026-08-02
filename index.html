@@ -499,6 +499,7 @@ input::placeholder,textarea::placeholder{color:var(--text-dim2);}
     <button class="a-tab active" data-atab="dash">📊 Dashboard</button>
     <button class="a-tab" data-atab="cats">🗂️ Categories</button>
     <button class="a-tab" data-atab="tasks">📋 Tasks</button>
+    <button class="a-tab" data-atab="submissions">📝 Submissions</button>
     <button class="a-tab" data-atab="join">📢 Force Join</button>
     <button class="a-tab" data-atab="withdraw">💸 Withdrawals</button>
     <button class="a-tab" data-atab="users">👥 Users</button>
@@ -514,6 +515,7 @@ input::placeholder,textarea::placeholder{color:var(--text-dim2);}
         <div class="a-stat"><div class="v" id="a-stat-balance">৳0</div><div class="l">Total Balance Liability</div></div>
         <div class="a-stat"><div class="v" id="a-stat-pending">0</div><div class="l">Pending Withdrawals</div></div>
         <div class="a-stat"><div class="v" id="a-stat-tasks">0</div><div class="l">Active Tasks</div></div>
+        <div class="a-stat"><div class="v" id="a-stat-submissions">0</div><div class="l">Pending Submissions</div></div>
       </div>
       <div class="a-card">
         <div class="a-item-title" style="margin-bottom:8px;">Quick Info</div>
@@ -540,16 +542,38 @@ input::placeholder,textarea::placeholder{color:var(--text-dim2);}
         <div class="field"><label>টাস্কের ধরন</label>
           <select id="task-type-select">
             <option value="join">চ্যানেল/গ্রুপ জয়েন (Auto Verify)</option>
+            <option value="form">কাস্টম ফর্ম সাবমিশন — Gmail/Facebook/Instagram Follow ইত্যাদি (Admin রিভিউ)</option>
             <option value="link">লিংক ভিজিট / অ্যাপ ডাউনলোড (Manual Claim)</option>
             <option value="custom">কাস্টম টাস্ক (Manual Claim)</option>
           </select>
         </div>
-        <div class="field"><label>চ্যানেল ইউজারনেম (join টাস্কের জন্য, @ ছাড়া)</label><input id="task-target-input" placeholder="@username অথবা https://link"></div>
+        <div class="field hidden" id="task-fields-builder-wrap">
+          <label>রিকোয়ারমেন্ট ফিল্ডস (ইউজার যা যা জমা দেবে)</label>
+          <div id="task-fields-list"></div>
+          <div style="display:flex;gap:6px;margin-top:8px;">
+            <input id="tf-label-input" placeholder="ফিল্ডের নাম, যেমন: Facebook Profile Link" style="flex:2;">
+            <select id="tf-type-input" style="flex:1;">
+              <option value="text">Text</option>
+              <option value="url">Link/URL</option>
+              <option value="email">Email</option>
+              <option value="number">Number</option>
+            </select>
+          </div>
+          <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:12px;font-weight:600;color:var(--text-dim);text-transform:none;letter-spacing:0;"><input type="checkbox" id="tf-required-input" checked style="width:auto;"> আবশ্যক ফিল্ড</label>
+          <button class="btn btn-ghost btn-block btn-sm" id="tf-add-btn" style="margin-top:8px;">+ ফিল্ড যোগ করুন</button>
+          <div class="help-note">নোট: পাসওয়ার্ড/লগইন তথ্য সংগ্রহের অপশন ইচ্ছাকৃতভাবে রাখা হয়নি — এটি Google/Meta নীতি ভঙ্গ করে ও অ্যাকাউন্ট মিসইউজের ঝুঁকি তৈরি করে। প্রোফাইল লিংক/ইউজারনেম/স্ক্রিনশট লিংক দিয়ে ভেরিফাই করুন।</div>
+        </div>
+        <div class="field" id="task-target-wrap"><label>চ্যানেল ইউজারনেম / লিংক (join, link, custom টাস্কের জন্য)</label><input id="task-target-input" placeholder="@username অথবা https://link"></div>
         <div class="field"><label>প্রতি টাস্কে রিওয়ার্ড (৳)</label><input id="task-reward-input" type="number" placeholder="2.00"></div>
         <div class="field"><label>সর্বোচ্চ কতজন করতে পারবে (0 = আনলিমিটেড)</label><input id="task-limit-input" type="number" placeholder="0"></div>
         <button class="btn btn-primary btn-block" id="task-add-btn">+ Add Task</button>
       </div>
       <div id="task-admin-list"></div>
+    </div>
+
+    <div class="a-screen" id="a-submissions">
+      <div class="search-bar"><select id="submission-filter-select"><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="all">All</option></select></div>
+      <div id="submission-admin-list"></div>
     </div>
 
     <div class="a-screen" id="a-join">
@@ -974,16 +998,18 @@ $('tasks-back-btn').addEventListener('click', ()=>{
 });
 function taskStatusFor(task, taskId){
   const done = USER_DATA && USER_DATA.completedTasks && USER_DATA.completedTasks[taskId];
+  const pending = USER_DATA && USER_DATA.pendingSubmissions && USER_DATA.pendingSubmissions[taskId];
   const limitReached = task.maxCompletions>0 && (task.completions||0) >= task.maxCompletions;
   if(done) return 'done';
+  if(pending) return 'pending';
   if(limitReached) return 'full';
   return 'todo';
 }
 function taskCardHtml(taskId, t){
   const status = taskStatusFor(t, taskId);
-  const icon = t.type==='join' ? '📢' : t.type==='link' ? '🔗' : '⭐';
-  const btnLabel = status==='done' ? '✔ সম্পন্ন' : status==='full' ? 'সীমা শেষ' : (t.type==='join'?'Join & Verify':'শুরু করুন');
-  const btnClass = status==='done'?'done':status==='full'?'full':'todo';
+  const icon = t.type==='join' ? '📢' : t.type==='form' ? '📝' : t.type==='link' ? '🔗' : '⭐';
+  const btnLabel = status==='done' ? '✔ সম্পন্ন' : status==='pending' ? 'রিভিউ হচ্ছে' : status==='full' ? 'সীমা শেষ' : (t.type==='join'?'Join & Verify': t.type==='form'?'ফর্ম পূরণ করুন':'শুরু করুন');
+  const btnClass = status==='done'?'done':status==='pending'?'verify':status==='full'?'full':'todo';
   return `<div class="task-card">
     <div class="task-icon">${icon}</div>
     <div class="task-mid">
@@ -1015,15 +1041,59 @@ function renderTasksEverywhere(){
 function openTaskModal(taskId){
   const t = TASKS[taskId]; if(!t) return;
   $('task-modal-title').textContent = t.title;
-  const link = t.type==='join' ? ('https://t.me/'+String(t.target||'').replace('@','')) : (t.target||'#');
-  $('task-modal-body').innerHTML = `
-    <div style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:14px;">${esc(t.description||'')}</div>
-    <div class="a-row-between" style="margin-bottom:16px;"><span class="a-item-sub">রিওয়ার্ড</span><span class="task-reward">+৳${money(t.reward)}</span></div>
-    <a href="${esc(link)}" target="_blank" class="btn btn-ghost btn-block" style="margin-bottom:10px;">🔗 ${t.type==='join'?'চ্যানেলে যান':'লিংকে যান'}</a>
-    <button class="btn btn-primary btn-block" id="task-modal-action-btn">${t.type==='join'?'✅ ভেরিফাই করুন':'🎁 রিওয়ার্ড নিন'}</button>
-  `;
-  $('task-modal-action-btn').addEventListener('click', ()=>completeTask(taskId));
+  if(t.type==='form'){
+    const fields = t.fields || [];
+    const inputType = ty=> ty==='url'?'url':ty==='email'?'email':ty==='number'?'number':'text';
+    const fieldsHtml = fields.map(f=>`
+      <div class="field"><label>${esc(f.label)}${f.required?' *':''}</label>
+      <input type="${inputType(f.type)}" data-fieldid="${esc(f.id)}" data-required="${f.required?1:0}" placeholder="${esc(f.label)}"></div>`).join('');
+    $('task-modal-body').innerHTML = `
+      <div style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:14px;">${esc(t.description||'')}</div>
+      <div class="a-row-between" style="margin-bottom:16px;"><span class="a-item-sub">রিওয়ার্ড (এডমিন অনুমোদনের পর)</span><span class="task-reward">+৳${money(t.reward)}</span></div>
+      ${fieldsHtml}
+      <button class="btn btn-primary btn-block" id="task-modal-action-btn">📤 জমা দিন</button>
+      <div class="help-note">তথ্য জমা দেওয়ার পর এডমিন যাচাই করে রিওয়ার্ড দেবে।</div>
+    `;
+    $('task-modal-action-btn').addEventListener('click', ()=>submitFormTask(taskId));
+  }else{
+    const link = t.type==='join' ? ('https://t.me/'+String(t.target||'').replace('@','')) : (t.target||'#');
+    $('task-modal-body').innerHTML = `
+      <div style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:14px;">${esc(t.description||'')}</div>
+      <div class="a-row-between" style="margin-bottom:16px;"><span class="a-item-sub">রিওয়ার্ড</span><span class="task-reward">+৳${money(t.reward)}</span></div>
+      <a href="${esc(link)}" target="_blank" class="btn btn-ghost btn-block" style="margin-bottom:10px;">🔗 ${t.type==='join'?'চ্যানেলে যান':'লিংকে যান'}</a>
+      <button class="btn btn-primary btn-block" id="task-modal-action-btn">${t.type==='join'?'✅ ভেরিফাই করুন':'🎁 রিওয়ার্ড নিন'}</button>
+    `;
+    $('task-modal-action-btn').addEventListener('click', ()=>completeTask(taskId));
+  }
   openModal('task-modal');
+}
+async function submitFormTask(taskId){
+  const t = TASKS[taskId]; if(!t) return;
+  if(USER_DATA.completedTasks && USER_DATA.completedTasks[taskId]){ toast('আপনি ইতিমধ্যে এই টাস্কটি সম্পন্ন করেছেন','error'); return; }
+  if(USER_DATA.pendingSubmissions && USER_DATA.pendingSubmissions[taskId]){ toast('আপনার সাবমিশন এখনো রিভিউ হচ্ছে','error'); return; }
+  if(t.maxCompletions>0 && (t.completions||0)>=t.maxCompletions){ toast('এই টাস্কের সীমা শেষ হয়ে গেছে','error'); return; }
+  const inputs = document.querySelectorAll('#task-modal-body [data-fieldid]');
+  const data = {};
+  for(const inp of inputs){
+    const val = inp.value.trim();
+    if(inp.dataset.required==='1' && !val){ toast('সব আবশ্যক ফিল্ড পূরণ করুন','error'); inp.focus(); return; }
+    data[inp.dataset.fieldid] = val;
+  }
+  const btn = $('task-modal-action-btn'); btn.disabled=true; btn.textContent='জমা হচ্ছে…';
+  try{
+    const ref = await db.ref('taskSubmissions').push({
+      taskId, userId:CURRENT_USER.id, userName:USER_DATA.name||CURRENT_USER.name,
+      fieldsMeta:(t.fields||[]).map(f=>({id:f.id,label:f.label})),
+      data, status:'pending', submittedAt:Date.now()
+    });
+    await db.ref('users/'+CURRENT_USER.id+'/pendingSubmissions/'+taskId).set(ref.key);
+    toast('✅ জমা হয়েছে, এডমিন রিভিউ করার পর রিওয়ার্ড যোগ হবে','success');
+    closeModal('task-modal');
+  }catch(err){
+    console.error(err);
+    toast('সমস্যা হয়েছে, আবার চেষ্টা করুন','error');
+    btn.disabled=false; btn.textContent='📤 জমা দিন';
+  }
 }
 async function completeTask(taskId){
   const t = TASKS[taskId]; if(!t) return;
@@ -1047,13 +1117,15 @@ async function completeTask(taskId){
     btn.disabled=false; btn.textContent = t.type==='join'?'✅ ভেরিফাই করুন':'🎁 রিওয়ার্ড নিন';
   }
 }
-async function creditTaskReward(taskId, t){
+async function awardTaskReward(userId, taskId, t){
   const reward = Number(t.reward)||0;
   await db.ref('tasks/'+taskId+'/completions').transaction(v=>(v||0)+1);
-  await db.ref('users/'+CURRENT_USER.id+'/completedTasks/'+taskId).set(Date.now());
-  await db.ref('users/'+CURRENT_USER.id+'/balance').transaction(v=>(Number(v)||0)+reward);
-  await db.ref('users/'+CURRENT_USER.id+'/totalEarned').transaction(v=>(Number(v)||0)+reward);
-  const referrerId = USER_DATA.referredBy;
+  await db.ref('users/'+userId+'/completedTasks/'+taskId).set(Date.now());
+  await db.ref('users/'+userId+'/balance').transaction(v=>(Number(v)||0)+reward);
+  await db.ref('users/'+userId+'/totalEarned').transaction(v=>(Number(v)||0)+reward);
+  const uSnap = await db.ref('users/'+userId).once('value');
+  const uData = uSnap.val()||{};
+  const referrerId = uData.referredBy;
   if(referrerId){
     const commissionPct = Number(SETTINGS.referralCommissionPercent||0);
     const commission = Math.round(reward*commissionPct)/100;
@@ -1061,15 +1133,18 @@ async function creditTaskReward(taskId, t){
       await db.ref('users/'+referrerId+'/balance').transaction(v=>(Number(v)||0)+commission);
       await db.ref('users/'+referrerId+'/referralEarnings').transaction(v=>(Number(v)||0)+commission);
     }
-    if(!USER_DATA.referralBonusPaid){
+    if(!uData.referralBonusPaid){
       const flatBonus = Number(SETTINGS.referralBonus||0);
       if(flatBonus>0){
         await db.ref('users/'+referrerId+'/balance').transaction(v=>(Number(v)||0)+flatBonus);
         await db.ref('users/'+referrerId+'/referralEarnings').transaction(v=>(Number(v)||0)+flatBonus);
       }
-      await db.ref('users/'+CURRENT_USER.id+'/referralBonusPaid').set(true);
+      await db.ref('users/'+userId+'/referralBonusPaid').set(true);
     }
   }
+}
+async function creditTaskReward(taskId, t){
+  await awardTaskReward(CURRENT_USER.id, taskId, t);
 }
 
 /* ---------------- banners ---------------- */
@@ -1211,7 +1286,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 /* ---------------- ADMIN PANEL ---------------- */
 function renderAdminAll(){
   renderAdminDash(); renderAdminCats(); renderAdminTasks(); renderAdminJoin();
-  renderAdminWithdrawals(); renderAdminUsers(); renderAdminBanners();
+  renderAdminWithdrawals(); renderAdminUsers(); renderAdminBanners(); renderAdminSubmissions();
 }
 
 /* dashboard */
@@ -1227,6 +1302,9 @@ async function renderAdminDash(){
   const pending = Object.values(wdObj).filter(w=>w.status==='pending').length;
   $('a-stat-pending').textContent = pending;
   $('a-stat-tasks').textContent = Object.values(TASKS||{}).filter(t=>t.active!==false).length;
+  const subSnap = await db.ref('taskSubmissions').once('value');
+  const subObj = subSnap.val()||{};
+  $('a-stat-submissions').textContent = Object.values(subObj).filter(s=>s.status==='pending').length;
 }
 
 /* categories admin */
@@ -1262,13 +1340,40 @@ async function deleteCategory(id){
 }
 
 /* tasks admin */
+let taskFieldsDraft = [];
+function renderTaskFieldsDraft(){
+  $('task-fields-list').innerHTML = taskFieldsDraft.map((f,i)=>`
+    <div class="a-row-between" style="padding:7px 0;border-bottom:1px solid var(--border);">
+      <div><div class="a-item-title" style="font-size:12.5px;">${esc(f.label)} ${f.required?'*':''}</div><div class="a-item-sub">${esc(f.type)}</div></div>
+      <button class="mini-btn" data-rmfield="${i}">✕</button>
+    </div>`).join('') || '<div class="empty-note">কোনো ফিল্ড যোগ করা হয়নি</div>';
+  document.querySelectorAll('[data-rmfield]').forEach(b=>b.addEventListener('click', ()=>{
+    taskFieldsDraft.splice(Number(b.dataset.rmfield),1); renderTaskFieldsDraft();
+  }));
+}
+renderTaskFieldsDraft();
+$('tf-add-btn').addEventListener('click', ()=>{
+  const label = $('tf-label-input').value.trim();
+  const type = $('tf-type-input').value;
+  const required = $('tf-required-input').checked;
+  if(!label){ toast('ফিল্ডের নাম দিন','error'); return; }
+  taskFieldsDraft.push({id:'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), label, type, required});
+  $('tf-label-input').value='';
+  renderTaskFieldsDraft();
+});
+$('task-type-select').addEventListener('change', ()=>{
+  const type = $('task-type-select').value;
+  $('task-fields-builder-wrap').classList.toggle('hidden', type!=='form');
+  $('task-target-wrap').classList.toggle('hidden', type==='form');
+});
 function renderAdminTasks(){
   const list = Object.entries(TASKS);
   $('task-admin-list').innerHTML = list.map(([id,t])=>{
     const catName = (CATEGORIES[t.categoryId]&&CATEGORIES[t.categoryId].name)||'—';
+    const fieldTag = t.type==='form' ? ` · 📝 ${(t.fields||[]).length}টি ফিল্ড` : '';
     return `<div class="a-card">
       <div class="a-row-between">
-        <div><div class="a-item-title">${esc(t.title)}</div><div class="a-item-sub">${esc(catName)} · ৳${money(t.reward)} · ${(t.completions||0)}${t.maxCompletions>0?'/'+t.maxCompletions:''} সম্পন্ন</div></div>
+        <div><div class="a-item-title">${esc(t.title)}</div><div class="a-item-sub">${esc(catName)} · ৳${money(t.reward)} · ${(t.completions||0)}${t.maxCompletions>0?'/'+t.maxCompletions:''} সম্পন্ন${fieldTag}</div></div>
         <div class="a-mini-btns">
           <div class="mini-btn" data-toggletask="${id}">${t.active!==false?'⏸️':'▶️'}</div>
           <div class="mini-btn" data-deltask="${id}">🗑️</div>
@@ -1295,11 +1400,55 @@ $('task-add-btn').addEventListener('click', async ()=>{
   if(!categoryId){ toast('আগে একটি ক্যাটাগরি যোগ করুন','error'); return; }
   if(!title||!reward){ toast('টাইটেল ও রিওয়ার্ড দিন','error'); return; }
   if(type==='join' && !target){ toast('চ্যানেল ইউজারনেম দিন','error'); return; }
-  await db.ref('tasks').push({categoryId,title,description,type,target,reward,maxCompletions,completions:0,active:true,createdAt:Date.now()});
+  if(type==='form' && taskFieldsDraft.length===0){ toast('অন্তত একটি রিকোয়ারমেন্ট ফিল্ড যোগ করুন','error'); return; }
+  const payload = {categoryId,title,description,type,target,reward,maxCompletions,completions:0,active:true,createdAt:Date.now()};
+  if(type==='form') payload.fields = taskFieldsDraft.slice();
+  await db.ref('tasks').push(payload);
   ['task-title-input','task-desc-input','task-target-input','task-reward-input','task-limit-input'].forEach(id=>$(id).value='');
+  taskFieldsDraft = [];
+  renderTaskFieldsDraft();
+  $('task-fields-builder-wrap').classList.add('hidden');
+  $('task-type-select').value = 'join';
   renderAdminTasks();
   toast('টাস্ক যোগ করা হয়েছে','success');
 });
+
+/* task submissions admin (form-type task review) */
+$('submission-filter-select').addEventListener('change', renderAdminSubmissions);
+async function renderAdminSubmissions(){
+  const snap = await db.ref('taskSubmissions').once('value');
+  const obj = snap.val()||{};
+  const filter = $('submission-filter-select').value;
+  const arr = Object.entries(obj).filter(([id,s])=>filter==='all'||s.status===filter).sort((a,b)=>(b[1].submittedAt||0)-(a[1].submittedAt||0));
+  $('submission-admin-list').innerHTML = arr.map(([id,s])=>{
+    const taskTitle = (TASKS[s.taskId]&&TASKS[s.taskId].title)||'—';
+    const fieldsHtml = (s.fieldsMeta||[]).map(f=>`<div class="a-item-sub">${esc(f.label)}: <b style="color:var(--text)">${esc((s.data&&s.data[f.id])||'—')}</b></div>`).join('');
+    return `<div class="a-card">
+      <div class="a-row-between">
+        <div><div class="a-item-title">${esc(s.userName)} · ${esc(taskTitle)}</div>${fieldsHtml}</div>
+        <div class="status-pill ${s.status}">${s.status}</div>
+      </div>
+      ${s.status==='pending'?`<div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="btn btn-success btn-sm" data-subapprove="${id}">✔ Approve</button>
+        <button class="btn btn-danger btn-sm" data-subreject="${id}">✕ Reject</button>
+      </div>`:''}
+    </div>`;
+  }).join('') || '<div class="empty-note">কোনো সাবমিশন নেই</div>';
+  document.querySelectorAll('[data-subapprove]').forEach(b=>b.addEventListener('click', ()=>processSubmission(b.dataset.subapprove,'approved')));
+  document.querySelectorAll('[data-subreject]').forEach(b=>b.addEventListener('click', ()=>processSubmission(b.dataset.subreject,'rejected')));
+}
+async function processSubmission(id, status){
+  const snap = await db.ref('taskSubmissions/'+id).once('value');
+  const s = snap.val(); if(!s) return;
+  await db.ref('taskSubmissions/'+id).update({status, processedAt:Date.now()});
+  await db.ref('users/'+s.userId+'/pendingSubmissions/'+s.taskId).remove();
+  if(status==='approved'){
+    const t = TASKS[s.taskId];
+    if(t) await awardTaskReward(s.userId, s.taskId, t);
+  }
+  toast(status==='approved'?'অনুমোদিত ও রিওয়ার্ড দেওয়া হয়েছে':'বাতিল করা হয়েছে','success');
+  renderAdminSubmissions(); renderAdminDash();
+}
 
 /* force join admin */
 function renderAdminJoin(){
