@@ -594,17 +594,18 @@ input::placeholder,textarea::placeholder{color:var(--text-dim2);}
           </div>
           <select id="tf-restrict-input" style="margin-top:8px;">
             <option value="none">ফরম্যাট প্যাটার্ন: কোনো বিধিনিষেধ নেই</option>
-            <option value="email">ইমেইল ডোমেইন (Settings ট্যাবে ডোমেইন লিস্ট সেট করুন)</option>
+            <option value="email">ইমেইল ডোমেইন</option>
             <option value="facebook">Facebook প্রোফাইল লিংক (facebook.com/...)</option>
             <option value="instagram">Instagram প্রোফাইল লিংক (instagram.com/...)</option>
           </select>
+          <input id="tf-email-domains-input" class="hidden" placeholder="ডোমেইন লিখুন, কমা দিয়ে: gmail.com, hotmail.com (খালি রাখলে Settings-এর ডিফল্ট চলবে)" style="margin-top:8px;">
           <div class="a-row-between" style="margin-top:10px;">
             <div><div class="a-item-title" style="font-size:12.5px;">ফরম্যাট ভ্যালিডেশন</div><div class="a-item-sub">চালু থাকলে উপরের প্যাটার্ন অনুযায়ী চেক হবে, বন্ধ থাকলে যেকোনো টেক্সট গ্রহণ হবে</div></div>
             <div class="toggle on" id="tf-validate-toggle"></div>
           </div>
           <label style="display:flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;font-weight:600;color:var(--text-dim);text-transform:none;letter-spacing:0;"><input type="checkbox" id="tf-required-input" checked style="width:auto;"> আবশ্যক ফিল্ড</label>
           <button class="btn btn-ghost btn-block btn-sm" id="tf-add-btn" style="margin-top:8px;">+ ফিল্ড যোগ করুন</button>
-          <div class="help-note">ভ্যালিডেশন শুধু ফরম্যাট চেক করে (ইমেইল ডোমেইন Settings-এ যা লিস্ট করা আছে তার মধ্যে কিনা, বা facebook.com/instagram.com লিংক কিনা) — অ্যাকাউন্টটা সত্যিই আছে/অ্যাক্টিভ কিনা তা যাচাই হয় না, সেটা Submissions ট্যাবে আপনাকে ম্যানুয়ালি দেখে Approve/Reject করতে হবে। পাসওয়ার্ড/লগইন তথ্যের জন্য কোনো ফিল্ড টাইপ ইচ্ছাকৃতভাবে রাখা হয়নি।</div>
+          <div class="help-note">ভ্যালিডেশন শুধু ফরম্যাট চেক করে (ইমেইল ডোমেইন — এই ফিল্ডে যা লিখবেন তা, না লিখলে Settings-এর ডিফল্ট — তার মধ্যে কিনা, বা facebook.com/instagram.com লিংক কিনা) — অ্যাকাউন্টটা সত্যিই আছে/অ্যাক্টিভ কিনা তা যাচাই হয় না, সেটা Submissions ট্যাবে আপনাকে ম্যানুয়ালি দেখে Approve/Reject করতে হবে। পাসওয়ার্ড/লগইন তথ্যের জন্য কোনো ফিল্ড টাইপ ইচ্ছাকৃতভাবে রাখা হয়নি।</div>
           <div class="help-note">নোট: পাসওয়ার্ড/লগইন তথ্য সংগ্রহের অপশন ইচ্ছাকৃতভাবে রাখা হয়নি — এটি Google/Meta নীতি ভঙ্গ করে ও অ্যাকাউন্ট মিসইউজের ঝুঁকি তৈরি করে। প্রোফাইল লিংক/ইউজারনেম/স্ক্রিনশট লিংক দিয়ে ভেরিফাই করুন।</div>
         </div>
         <div class="field" id="task-target-wrap"><label>চ্যানেল ইউজারনেম / লিংক (join, link, custom টাস্কের জন্য)</label><input id="task-target-input" placeholder="@username অথবা https://link"></div>
@@ -683,7 +684,7 @@ input::placeholder,textarea::placeholder{color:var(--text-dim2);}
         <div class="field"><label>Support Link (Telegram)</label><input id="set-support" placeholder="https://t.me/yourusername"></div>
         <div class="field"><label>Welcome Message</label><textarea id="set-welcome" rows="3"></textarea></div>
         <div class="field"><label>Mini App Link (BotFather থেকে পাওয়া, রেফারেলের জন্য জরুরি)</label><input id="set-miniapplink" placeholder="https://t.me/YourBot/YourApp"></div>
-        <div class="field"><label>গ্রহণযোগ্য ইমেইল ডোমেইন (কমা দিয়ে আলাদা করুন — Email-restricted ফর্ম ফিল্ডে ব্যবহৃত হবে)</label><input id="set-emaildomains" placeholder="gmail.com, hotmail.com, outlook.com"></div>
+        <div class="field"><label>ডিফল্ট ইমেইল ডোমেইন (কমা দিয়ে আলাদা করুন — টাস্ক ফিল্ডে আলাদা ডোমেইন না দিলে এটা ব্যবহৃত হবে)</label><input id="set-emaildomains" placeholder="gmail.com, hotmail.com, outlook.com"></div>
         <button class="btn btn-primary btn-block" id="save-general-btn">Save General Settings</button>
       </div>
       <div class="a-card">
@@ -1098,17 +1099,17 @@ $('tasks-back-btn').addEventListener('click', ()=>{
    actually active — that still needs a human to review in the Submissions
    tab. There is deliberately no "password" field type: this app never
    collects account credentials. */
-function getAllowedEmailDomains(){
-  const raw = (SETTINGS.allowedEmailDomains||'gmail.com').toString();
+function getAllowedEmailDomains(customCsv){
+  const raw = (customCsv || SETTINGS.allowedEmailDomains || 'gmail.com').toString();
   return raw.split(',').map(d=>d.trim().toLowerCase()).filter(Boolean);
 }
-function isValidRestrictedEmail(v){
+function isValidRestrictedEmail(v, customCsv){
   const val = String(v||'').trim().toLowerCase();
   if(!/^[a-z0-9](?:[a-z0-9._%+-]{0,63})@[a-z0-9.-]+\.[a-z]{2,}$/.test(val)) return false;
   const local = val.split('@')[0];
   if(/\.\./.test(local) || local.startsWith('.') || local.endsWith('.')) return false;
   const domain = val.split('@')[1];
-  const allowed = getAllowedEmailDomains();
+  const allowed = getAllowedEmailDomains(customCsv);
   return allowed.length===0 ? true : allowed.includes(domain);
 }
 function normalizeEmailForDedup(v){
@@ -1122,13 +1123,13 @@ function normalizeEmailForDedup(v){
 }
 const FIELD_VALIDATORS = {
   none: ()=>true,
-  email: isValidRestrictedEmail,
-  gmail: isValidRestrictedEmail, /* legacy alias for tasks created before the domain whitelist */
+  email: (v, customCsv)=>isValidRestrictedEmail(v, customCsv),
+  gmail: (v, customCsv)=>isValidRestrictedEmail(v, customCsv), /* legacy alias for tasks created before the domain whitelist */
   facebook: v=>/^https?:\/\/(www\.|m\.)?facebook\.com\/.+/i.test(String(v||'').trim()),
   instagram: v=>/^https?:\/\/(www\.)?instagram\.com\/[a-zA-Z0-9_.]+\/?$/i.test(String(v||'').trim())
 };
-function fieldPlaceholderFor(restrict){
-  if(restrict==='email'||restrict==='gmail'){ const d=getAllowedEmailDomains(); return 'example@'+(d[0]||'gmail.com'); }
+function fieldPlaceholderFor(restrict, customCsv){
+  if(restrict==='email'||restrict==='gmail'){ const d=getAllowedEmailDomains(customCsv); return 'example@'+(d[0]||'gmail.com'); }
   if(restrict==='facebook') return 'https://facebook.com/yourprofile';
   if(restrict==='instagram') return 'https://instagram.com/yourusername';
   return '';
@@ -1139,7 +1140,7 @@ function validateFieldEl(inp){
   if(!val){ inp.classList.remove('field-valid','field-invalid'); return true; }
   if(inp.dataset.validate==='0'){ inp.classList.remove('field-valid','field-invalid'); return true; }
   const fn = FIELD_VALIDATORS[restrict]||FIELD_VALIDATORS.none;
-  const ok = fn(val);
+  const ok = fn(val, inp.dataset.domains);
   inp.classList.toggle('field-valid', ok);
   inp.classList.toggle('field-invalid', !ok);
   return ok;
@@ -1209,7 +1210,7 @@ function openTaskModal(taskId){
     const inputType = ty=> ty==='url'?'url':ty==='email'?'email':ty==='number'?'number':'text';
     const fieldsHtml = fields.map(f=>`
       <div class="field"><label>${esc(f.label)}${f.required?' *':''}</label>
-      <input type="${inputType(f.type)}" data-fieldid="${esc(f.id)}" data-required="${f.required?1:0}" data-restrict="${esc(f.restrict||'none')}" data-validate="${f.validate===false?0:1}" placeholder="${esc(fieldPlaceholderFor(f.restrict)||f.label)}"></div>`).join('');
+      <input type="${inputType(f.type)}" data-fieldid="${esc(f.id)}" data-required="${f.required?1:0}" data-restrict="${esc(f.restrict||'none')}" data-validate="${f.validate===false?0:1}" data-domains="${esc(f.emailDomains||'')}" placeholder="${esc(fieldPlaceholderFor(f.restrict,f.emailDomains)||f.label)}"></div>`).join('');
     $('task-modal-body').innerHTML = `
       <div style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:14px;">${esc(t.description||'')}</div>
       <div class="a-row-between" style="margin-bottom:16px;"><span class="a-item-sub">রিওয়ার্ড (এডমিন অনুমোদনের পর)</span><span class="task-reward">+৳${money(t.reward)}</span></div>
@@ -1546,29 +1547,39 @@ async function deleteCategory(id){
 }
 
 /* tasks admin */
-const RESTRICT_LABELS = {none:'', email:'📧 Email (ডোমেইন লিস্ট)', gmail:'📧 Email (ডোমেইন লিস্ট)', facebook:'📘 Facebook লিংক', instagram:'📸 Instagram লিংক'};
+const RESTRICT_LABELS = {none:'', email:'📧 Email', gmail:'📧 Email', facebook:'📘 Facebook লিংক', instagram:'📸 Instagram লিংক'};
 let taskFieldsDraft = [];
 function renderTaskFieldsDraft(){
-  $('task-fields-list').innerHTML = taskFieldsDraft.map((f,i)=>`
-    <div class="a-row-between" style="padding:7px 0;border-bottom:1px solid var(--border);">
-      <div><div class="a-item-title" style="font-size:12.5px;">${esc(f.label)} ${f.required?'*':''}</div><div class="a-item-sub">${esc(f.type)}${f.validate&&RESTRICT_LABELS[f.restrict]?' · '+RESTRICT_LABELS[f.restrict]:''}${f.validate===false?' · ভ্যালিডেশন বন্ধ':''}</div></div>
+  $('task-fields-list').innerHTML = taskFieldsDraft.map((f,i)=>{
+    const domainTag = f.emailDomains ? ` (${esc(f.emailDomains)})` : (f.restrict==='email'?' (Settings ডিফল্ট)':'');
+    return `<div class="a-row-between" style="padding:7px 0;border-bottom:1px solid var(--border);">
+      <div><div class="a-item-title" style="font-size:12.5px;">${esc(f.label)} ${f.required?'*':''}</div><div class="a-item-sub">${esc(f.type)}${f.validate&&RESTRICT_LABELS[f.restrict]?' · '+RESTRICT_LABELS[f.restrict]+domainTag:''}${f.validate===false?' · ভ্যালিডেশন বন্ধ':''}</div></div>
       <button class="mini-btn" data-rmfield="${i}">✕</button>
-    </div>`).join('') || '<div class="empty-note">কোনো ফিল্ড যোগ করা হয়নি</div>';
+    </div>`;
+  }).join('') || '<div class="empty-note">কোনো ফিল্ড যোগ করা হয়নি</div>';
   document.querySelectorAll('[data-rmfield]').forEach(b=>b.addEventListener('click', ()=>{
     taskFieldsDraft.splice(Number(b.dataset.rmfield),1); renderTaskFieldsDraft();
   }));
 }
 renderTaskFieldsDraft();
+$('tf-restrict-input').addEventListener('change', ()=>{
+  $('tf-email-domains-input').classList.toggle('hidden', $('tf-restrict-input').value!=='email');
+});
 $('tf-add-btn').addEventListener('click', ()=>{
   const label = $('tf-label-input').value.trim();
   const type = $('tf-type-input').value;
   const restrict = $('tf-restrict-input').value;
+  const emailDomains = $('tf-email-domains-input').value.trim();
   const validate = $('tf-validate-toggle').classList.contains('on');
   const required = $('tf-required-input').checked;
   if(!label){ toast('ফিল্ডের নাম দিন','error'); return; }
-  taskFieldsDraft.push({id:'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), label, type, restrict, validate, required});
+  const fieldObj = {id:'f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), label, type, restrict, validate, required};
+  if(restrict==='email' && emailDomains) fieldObj.emailDomains = emailDomains;
+  taskFieldsDraft.push(fieldObj);
   $('tf-label-input').value='';
   $('tf-restrict-input').value='none';
+  $('tf-email-domains-input').value='';
+  $('tf-email-domains-input').classList.add('hidden');
   $('tf-validate-toggle').classList.add('on');
   renderTaskFieldsDraft();
 });
