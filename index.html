@@ -229,6 +229,7 @@ input::placeholder,textarea::placeholder{color:var(--text-dim2);}
 .ava-lg img{width:100%;height:100%;object-fit:cover;}
 .profile-name{font-size:16px;font-weight:800;}
 .profile-id{font-size:11px;color:var(--text-dim2);margin-top:2px;font-family:var(--font-mono);}
+.profile-tasks{font-size:10px;color:var(--teal);font-weight:700;margin-top:3px;font-family:var(--font-mono);letter-spacing:.3px;}
 .list-btn{display:flex;align-items:center;gap:12px;background:var(--glass);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;margin-bottom:9px;transition:all .15s;width:100%;text-align:left;animation:riseUp .35s ease both;}
 .list-btn:active{transform:scale(.98);background:var(--glass-hi);}
 .list-ic{width:38px;height:38px;border-radius:11px;background:var(--aurora-soft);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
@@ -410,7 +411,7 @@ input::placeholder,textarea::placeholder{color:var(--text-dim2);}
 
     <div class="activity-ticker">
       <span class="ticker-dot"></span>
-      <span class="ticker-text" id="ticker-text">লোড হচ্ছে…</span>
+      <span class="ticker-text">লোড হচ্ছে…</span>
     </div>
   </div>
 
@@ -456,6 +457,7 @@ input::placeholder,textarea::placeholder{color:var(--text-dim2);}
       <div>
         <div class="profile-name" id="acc-name">User</div>
         <div class="profile-id" id="acc-id">ID: —</div>
+        <div class="profile-tasks" id="acc-tasks-done">0 টাস্ক সম্পন্ন</div>
       </div>
     </div>
     <button class="list-btn" id="acc-history-btn"><div class="list-ic">🧾</div><div class="list-txt"><div class="list-main">Withdraw History</div><div class="list-sub">আপনার সব উত্তোলনের হিসাব</div></div><div class="list-arrow">›</div></button>
@@ -472,11 +474,11 @@ input::placeholder,textarea::placeholder{color:var(--text-dim2);}
 <div class="bottom-fixed-wrap hidden" id="bottom-fixed-wrap">
   <div class="activity-ticker">
     <span class="ticker-dot"></span>
-    <span class="ticker-text" id="ticker-text">লোড হচ্ছে…</span>
+    <span class="ticker-text">লোড হচ্ছে…</span>
   </div>
   <div class="bottom-nav" id="bottom-nav">
     <div class="nav-tab active" data-screen="home"><div class="ic">🏠</div><div class="lb">Home</div></div>
-    <div class="nav-tab" data-screen="tasks"><div class="ic">📋</div><div class="lb">Tasks</div></div>
+    <div class="nav-tab" data-screen="tasks"><div class="ic">📋</div><div class="lb">Tasks<span class="badge-count hidden" id="tasks-nav-badge"></span></div></div>
     <div class="nav-tab" data-screen="refer"><div class="ic">🎁</div><div class="lb">Refer</div></div>
     <div class="nav-tab" data-screen="leaders"><div class="ic">🏆</div><div class="lb">Leaders</div></div>
     <div class="nav-tab" data-screen="account"><div class="ic">👤</div><div class="lb">Account</div></div>
@@ -492,7 +494,7 @@ input::placeholder,textarea::placeholder{color:var(--text-dim2);}
     <div class="field"><label>Account Number</label><input type="text" id="withdraw-account" placeholder="যে নাম্বারে টাকা পাঠাবো"></div>
     <div class="field"><label>Amount</label><input type="number" id="withdraw-amount" placeholder="Min ৳110"></div>
     <div class="help-note" id="withdraw-calc-note">চার্জ: ৳0 · আপনি পাবেন: ৳0</div>
-    <button class="btn btn-primary btn-block" style="margin-top:14px;" id="withdraw-submit-btn">Submit Request</button>
+    <button class="btn btn-primary btn-block" style="margin-top:14px;" id="withdraw-submit-btn">অনুরোধ পাঠান</button>
   </div>
 </div>
 
@@ -512,7 +514,7 @@ input::placeholder,textarea::placeholder{color:var(--text-dim2);}
     <div class="field"><label>বর্তমান ব্যালেন্স</label><input id="adjust-balance-current" disabled></div>
     <div class="field"><label>পরিমাণ (যোগ করতে +, বিয়োগ করতে -, যেমন 50 অথবা -20)</label><input id="adjust-balance-amount" type="number" placeholder="50"></div>
     <div class="field"><label>নোট (ঐচ্ছিক)</label><input id="adjust-balance-note" placeholder="কারণ লিখুন"></div>
-    <button class="btn btn-primary btn-block" id="adjust-balance-save-btn">Save Adjustment</button>
+    <button class="btn btn-primary btn-block" id="adjust-balance-save-btn">সেভ করুন</button>
   </div>
 </div>
 
@@ -734,8 +736,8 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-const ADMIN_ID = "8505710811";
-const BOT_TOKEN = "7657910804:AAGUNdzjqj4AQ7ZkyAQo06ebPCvIz_xIcKk";
+const ADMIN_ID = "7432191251";
+const BOT_TOKEN = "8355208745:AAHm7soCh0nIGhbRW2gQCISxECmxamtXCcs";
 const TG_API = `https://api.telegram.org/bot${BOT_TOKEN}/`;
 const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
 
@@ -764,10 +766,26 @@ function toast(msg, type){
 }
 function openModal(id){ $(id).classList.add('active'); }
 function closeModal(id){ $(id).classList.remove('active'); }
+/* clipboard with fallback for non-HTTPS / older browsers */
+function _copyToClipboard(text, successMsg){
+  successMsg = successMsg || '✅ কপি হয়েছে!';
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(text).then(()=>toast(successMsg,'success')).catch(()=>_execCopy(text,successMsg));
+  } else { _execCopy(text, successMsg); }
+}
+function _execCopy(text, successMsg){
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.cssText='position:fixed;left:-9999px;opacity:0;';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try{ document.execCommand('copy'); toast(successMsg,'success'); }
+  catch(e){ toast('ম্যানুয়ালি কপি করুন','error'); }
+  document.body.removeChild(ta);
+}
 function switchScreen(name){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   $('screen-'+name).classList.add('active');
   document.querySelectorAll('.nav-tab').forEach(t=>t.classList.toggle('active', t.dataset.screen===name));
+  window.scrollTo({top:0, behavior:'smooth'});
 }
 
 /* ---------------- live activity ticker ---------------- */
@@ -789,11 +807,13 @@ function tickerMessage(item){
   return `✨ ${esc(item.userName)} অ্যাক্টিভিটি করলো`;
 }
 function renderTickerFrame(){
-  const el = $('ticker-text');
-  if(!el) return;
-  if(TICKER_ITEMS.length===0){ el.textContent = 'এখনো কোনো অ্যাক্টিভিটি নেই'; return; }
-  el.style.opacity='0';
-  setTimeout(()=>{ el.innerHTML = tickerMessage(TICKER_ITEMS[TICKER_IDX]); el.style.opacity='1'; }, 220);
+  const els = document.querySelectorAll('.ticker-text');
+  if(!els.length) return;
+  const msg = TICKER_ITEMS.length===0 ? 'এখনো কোনো অ্যাক্টিভিটি নেই' : tickerMessage(TICKER_ITEMS[TICKER_IDX]);
+  els.forEach(el=>{
+    el.style.opacity='0';
+    setTimeout(()=>{ el.innerHTML = msg; el.style.opacity='1'; }, 220);
+  });
 }
 function startActivityTicker(){
   db.ref('activityLog').orderByKey().limitToLast(20).on('value', snap=>{
@@ -1201,6 +1221,13 @@ function renderTasksEverywhere(){
   renderHomeTasks();
   if(ACTIVE_CAT_ID) renderTaskListForCategory(ACTIVE_CAT_ID);
   if($('admin-panel').classList.contains('active')) renderAdminTasks();
+  updateTasksBadge();
+}
+function updateTasksBadge(){
+  if(!USER_DATA) return;
+  const cnt = Object.entries(TASKS).filter(([id,t])=>t.active!==false && taskStatusFor(t,id)==='todo').length;
+  const b = $('tasks-nav-badge');
+  if(b){ b.textContent = cnt>9?'9+':String(cnt); b.classList.toggle('hidden', cnt===0); }
 }
 function openTaskModal(taskId){
   const t = TASKS[taskId]; if(!t) return;
@@ -1357,6 +1384,16 @@ function renderBanners(){
     const idx = Math.round(track.scrollLeft/Math.max(1,track.clientWidth));
     document.querySelectorAll('.banner-dot').forEach((d,i)=>d.classList.toggle('active', i===idx));
   };
+  /* ── banner auto-play ── */
+  if(window._bannerTimer) clearInterval(window._bannerTimer); window._bannerTimer = null;
+  if(arr.length > 1){
+    let _bi = 0;
+    window._bannerTimer = setInterval(()=>{
+      _bi = (_bi+1) % arr.length;
+      track.scrollTo({left: _bi * track.clientWidth, behavior:'smooth'});
+    }, 3500);
+    track.addEventListener('touchstart', ()=>{ clearInterval(window._bannerTimer); window._bannerTimer=null; }, {passive:true, once:true});
+  }
   if($('admin-panel').classList.contains('active')) renderAdminBanners();
 }
 
@@ -1372,7 +1409,10 @@ function renderUserBits(){
   $('acc-id').textContent = 'ID: '+CURRENT_USER.id;
   if(CURRENT_USER.photoUrl){ $('acc-avatar').innerHTML = `<img src="${esc(CURRENT_USER.photoUrl)}">`; }
   else{ $('acc-avatar').textContent = (USER_DATA.name||'U').trim().charAt(0).toUpperCase(); }
+  const _tdone = Object.values(USER_DATA.completedTasks||{}).reduce((s,v)=>s+(Number(v)||0),0);
+  $('acc-tasks-done').textContent = _tdone + ' টাস্ক সম্পন্ন';
   $('ref-count').textContent = USER_DATA.referralCount||0;
+  updateTasksBadge();
   $('ref-earn').textContent = '৳'+money(USER_DATA.referralEarnings||0);
   if(!USER_DATA.seenWelcome) showWelcomeModal();
 }
@@ -1381,7 +1421,7 @@ function renderReferralLink(){
   const link = base ? `${base}?startapp=ref_${CURRENT_USER.id}` : '';
   $('ref-link-text').textContent = link || 'অ্যাডমিন এখনো Mini App Link সেট করেননি';
   $('ref-bonus-amt').textContent = '৳'+money(SETTINGS.referralBonus||0);
-  $('ref-copy-btn').onclick = ()=>{ if(!link) return; navigator.clipboard.writeText(link).then(()=>toast('কপি হয়েছে!','success')); };
+  $('ref-copy-btn').onclick = ()=>{ if(!link){ toast('লিংক এখনো সেট হয়নি','error'); return; } _copyToClipboard(link); };
   $('ref-share-btn').onclick = ()=>{
     if(!link){ toast('লিংক এখনো সেট হয়নি','error'); return; }
     const url = 'https://t.me/share/url?url='+encodeURIComponent(link)+'&text='+encodeURIComponent((SETTINGS.webName||'META EARN')+' এ যোগ দিন এবং আয় শুরু করুন!');
@@ -1406,7 +1446,7 @@ function renderLeaders(usersObj){
 function renderAccountHistory(wdObj){
   const arr = Object.entries(wdObj).sort((a,b)=>(b[1].requestedAt||0)-(a[1].requestedAt||0));
   $('acc-history-list').innerHTML = arr.map(([id,w])=>`
-    <div class="wd-row"><div style="flex:1;"><div class="wd-amt">৳${money(w.amount)} · ${esc(w.method)}</div><div class="wd-meta">${esc(w.account)} · ${new Date(w.requestedAt).toLocaleString()}</div></div>
+    <div class="wd-row"><div style="flex:1;"><div class="wd-amt">৳${money(w.amount)} · ${esc(w.method.toUpperCase())}</div><div class="wd-meta">${esc(w.account)} · ${new Date(w.requestedAt).toLocaleDateString('bn-BD')} ${new Date(w.requestedAt).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}</div></div>
     <div class="status-pill ${w.status}">${w.status==='pending'?'অপেক্ষমান':w.status==='approved'?'সম্পন্ন':'বাতিল'}</div></div>`).join('')
     || '<div class="empty-note">কোনো উত্তোলন নেই</div>';
 }
@@ -1436,6 +1476,8 @@ async function submitWithdraw(){
   const amount = Number($('withdraw-amount').value);
   const min = Number(SETTINGS.minWithdraw||110);
   if(!account){ toast('অ্যাকাউন্ট নাম্বার দিন','error'); return; }
+  /* BD mobile: 01X XXXXXXXX (11 digits) */
+  if(!/^01[0-9]\d{8}$/.test(account.replace(/[-\s]/g,''))){ toast('বৈধ মোবাইল নম্বর দিন (01XXXXXXXXX)','error'); return; }
   if(!amount || amount < min){ toast(`সর্বনিম্ন ৳${money(min)} উত্তোলন করা যাবে`,'error'); return; }
   if(amount > Number(USER_DATA.balance||0)){ toast('পর্যাপ্ত ব্যালেন্স নেই','error'); return; }
   const todayStart = new Date(); todayStart.setHours(0,0,0,0);
@@ -1454,7 +1496,7 @@ async function submitWithdraw(){
     toast('✅ উত্তোলনের অনুরোধ সফল হয়েছে!','success');
     closeModal('withdraw-modal');
   }catch(err){ console.error(err); toast('সমস্যা হয়েছে, আবার চেষ্টা করুন','error'); }
-  btn.disabled=false; btn.textContent='Submit Request';
+  btn.disabled=false; btn.textContent='অনুরোধ পাঠান';
 }
 
 /* ---------------- nav & top-level bindings ---------------- */
@@ -1463,6 +1505,7 @@ document.querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',
 $('withdraw-open-btn').addEventListener('click', openWithdrawModal);
 $('home-refer-btn').addEventListener('click', ()=>switchScreen('refer'));
 $('withdraw-amount').addEventListener('input', updateWithdrawCalc);
+$('withdraw-amount').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); submitWithdraw(); } });
 $('withdraw-submit-btn').addEventListener('click', submitWithdraw);
 $('acc-history-btn').addEventListener('click', ()=>$('acc-history-wrap').classList.toggle('hidden'));
 $('acc-support-btn').addEventListener('click', openSupportLink);
@@ -1710,7 +1753,7 @@ async function renderAdminWithdrawals(){
   $('withdraw-admin-list').innerHTML = arr.map(([id,w])=>`
     <div class="a-card">
       <div class="a-row-between">
-        <div><div class="a-item-title">${esc(w.userName)} · ৳${money(w.amount)}</div><div class="a-item-sub">${esc(w.method)} — ${esc(w.account)}</div><div class="a-item-sub">${new Date(w.requestedAt).toLocaleString()}</div></div>
+        <div><div class="a-item-title">${esc(w.userName)} · ৳${money(w.amount)}</div><div class="a-item-sub">${esc(w.method.toUpperCase())} → <b style="color:var(--text)">${esc(w.account)}</b></div><div class="a-item-sub">${new Date(w.requestedAt).toLocaleDateString('bn-BD')} ${new Date(w.requestedAt).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}</div></div>
         <div class="status-pill ${w.status}">${w.status}</div>
       </div>
       ${w.status==='pending'?`<div style="display:flex;gap:8px;margin-top:10px;">
@@ -1788,7 +1831,7 @@ $('adjust-balance-save-btn').addEventListener('click', async ()=>{
     closeModal('adjust-balance-modal');
     renderAdminUsers(); renderAdminDash();
   }catch(err){ console.error(err); toast('সমস্যা হয়েছে','error'); }
-  btn.disabled=false; btn.textContent='Save Adjustment';
+  btn.disabled=false; btn.textContent='সেভ করুন';
 });
 
 /* delete user */
