@@ -347,6 +347,38 @@ input::placeholder,textarea::placeholder{color:var(--text-dim2);}
 .sect-divider{display:flex;align-items:center;gap:10px;margin:14px 0 12px;}
 .sect-divider::before,.sect-divider::after{content:'';flex:1;height:1px;background:var(--border);}
 .sect-divider span{font-size:10px;font-weight:700;color:var(--text-dim2);text-transform:uppercase;letter-spacing:1px;white-space:nowrap;}
+
+/* ── SUBMISSION CARD (admin) ── */
+.sub-card{background:var(--elev-1);border:1px solid var(--border);border-radius:var(--radius-md);margin-bottom:10px;overflow:hidden;box-shadow:var(--shadow-sm);animation:riseUp .3s ease both;}
+.sub-card.pending-card{border-left:3px solid var(--gold);}
+.sub-card.approved-card{border-left:3px solid var(--success);}
+.sub-card.rejected-card{border-left:3px solid var(--danger);}
+.sub-card-head{display:flex;align-items:center;gap:10px;padding:12px 14px 10px;}
+.sub-ava{width:40px;height:40px;border-radius:12px;background:var(--aurora);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;font-size:16px;color:#fff;flex-shrink:0;}
+.sub-user-info{flex:1;min-width:0;}
+.sub-user-name{font-size:13px;font-weight:800;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sub-user-meta{font-size:10.5px;color:var(--text-dim2);margin-top:2px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.sub-user-meta .tg-handle{color:var(--violet);font-weight:700;font-family:var(--font-mono);}
+.sub-user-meta .uid-chip{background:var(--glass);border:1px solid var(--border);border-radius:6px;padding:1px 6px;font-family:var(--font-mono);font-size:9.5px;}
+.sub-task-row{display:flex;align-items:center;gap:6px;padding:0 14px 8px;border-bottom:1px solid var(--border);}
+.sub-task-name{font-size:11.5px;font-weight:700;color:var(--violet);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sub-time{font-size:10px;color:var(--text-dim2);white-space:nowrap;}
+.sub-fields{padding:10px 14px;display:flex;flex-direction:column;gap:6px;}
+.sub-field-row{display:flex;gap:8px;align-items:flex-start;}
+.sub-field-label{font-size:10px;font-weight:700;color:var(--text-dim2);text-transform:uppercase;letter-spacing:.4px;flex-shrink:0;width:100px;padding-top:2px;}
+.sub-field-val{font-size:12.5px;font-weight:600;color:var(--text);word-break:break-all;line-height:1.4;flex:1;background:rgba(20,28,48,.03);border-radius:7px;padding:4px 8px;border:1px solid var(--border);}
+.sub-field-val a{color:var(--violet);text-decoration:underline;}
+.sub-actions{display:flex;gap:8px;padding:10px 14px 12px;}
+.sub-btn{flex:1;padding:9px 12px;border-radius:10px;font-size:12.5px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s;border:none;cursor:pointer;}
+.sub-btn:active{transform:scale(.96);}
+.sub-btn-approve{background:var(--success-bg);color:var(--success);border:1.5px solid rgba(31,170,110,.35);}
+.sub-btn-reject{background:var(--danger-bg);color:var(--danger);border:1.5px solid rgba(226,63,82,.35);}
+.sub-btn[disabled]{opacity:.4;pointer-events:none;}
+.sub-status-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:9.5px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;flex-shrink:0;}
+.sub-status-badge.pending{background:var(--warning-bg);color:var(--gold);}
+.sub-status-badge.approved{background:var(--success-bg);color:var(--success);}
+.sub-status-badge.rejected{background:var(--danger-bg);color:var(--danger);}
+.sub-proc-note{padding:8px 14px 12px;font-size:10.5px;color:var(--text-dim2);text-align:center;}
 </style>
 </head>
 <body>
@@ -1306,10 +1338,12 @@ function myTaskCount(taskId){
 function taskStatusFor(task, taskId){
   const myCount = myTaskCount(taskId);
   const perUserLimit = task.perUserLimit==null ? 1 : Number(task.perUserLimit);
+  const isUnlimited = perUserLimit === 0;
   const pending = USER_DATA && USER_DATA.pendingSubmissions && USER_DATA.pendingSubmissions[taskId];
   const myLimitReached = perUserLimit>0 && myCount >= perUserLimit;
   const globalLimitReached = task.maxCompletions>0 && (task.completions||0) >= task.maxCompletions;
-  if(pending) return 'pending';
+  /* unlimited tasks: pending doesn't block re-submission */
+  if(pending && !isUnlimited) return 'pending';
   if(myLimitReached) return 'done';
   if(globalLimitReached) return 'full';
   return 'todo';
@@ -1468,9 +1502,11 @@ function openTaskModal(taskId){
 async function submitFormTask(taskId){
   const t = TASKS[taskId]; if(!t) return;
   const perUserLimit = t.perUserLimit==null ? 1 : Number(t.perUserLimit);
+  const isUnlimited = perUserLimit === 0;
   const myCount = myTaskCount(taskId);
   if(perUserLimit>0 && myCount>=perUserLimit){ toast('আপনি এই টাস্কের সর্বোচ্চ সীমায় পৌঁছে গেছেন','error'); return; }
-  if(USER_DATA.pendingSubmissions && USER_DATA.pendingSubmissions[taskId]){ toast('আপনার সাবমিশন এখনো রিভিউ হচ্ছে','error'); return; }
+  /* only block on pending if NOT unlimited — unlimited tasks allow re-submit while pending */
+  if(!isUnlimited && USER_DATA.pendingSubmissions && USER_DATA.pendingSubmissions[taskId]){ toast('আপনার সাবমিশন এখনো রিভিউ হচ্ছে','error'); return; }
   if(t.maxCompletions>0 && (t.completions||0)>=t.maxCompletions){ toast('এই টাস্কের সীমা শেষ হয়ে গেছে','error'); return; }
   const inputs = document.querySelectorAll('#task-modal-body [data-fieldid]');
   const data = {};
@@ -1506,14 +1542,22 @@ async function submitFormTask(taskId){
       }
     }
     const ref = await db.ref('taskSubmissions').push({
-      taskId, userId:CURRENT_USER.id, userName:USER_DATA.name||CURRENT_USER.name,
+      taskId, userId:CURRENT_USER.id,
+      userName: USER_DATA.name||CURRENT_USER.name,
+      userTgUsername: CURRENT_USER.username||'',
+      taskTitle: t.title||'',
       fieldsMeta:(t.fields||[]).map(f=>({id:f.id,label:f.label})),
       data, emailHashes, status:'pending', submittedAt:Date.now()
     });
     for(const hash of emailHashes){
       await db.ref('usedEmails/'+hash).set({userId:CURRENT_USER.id, submissionId:ref.key, at:Date.now()});
     }
-    await db.ref('users/'+CURRENT_USER.id+'/pendingSubmissions/'+taskId).set(ref.key);
+    /* for unlimited tasks store under a sub-key so multiple can coexist */
+    if(isUnlimited){
+      await db.ref('users/'+CURRENT_USER.id+'/pendingSubmissions/'+taskId+'/'+ref.key).set(true);
+    } else {
+      await db.ref('users/'+CURRENT_USER.id+'/pendingSubmissions/'+taskId).set(ref.key);
+    }
     toast('✅ জমা হয়েছে, এডমিন রিভিউ করার পর রিওয়ার্ড যোগ হবে','success');
     closeModal('task-modal');
   }catch(err){
@@ -1985,42 +2029,148 @@ $('task-add-btn').addEventListener('click', async ()=>{
 });
 
 /* task submissions admin (form-type task review) */
+function _timeAgo(ts){
+  if(!ts) return '—';
+  const s = Math.floor((Date.now()-ts)/1000);
+  if(s<60) return s+'s আগে';
+  const m=Math.floor(s/60); if(m<60) return m+' মিনিট আগে';
+  const h=Math.floor(m/60); if(h<24) return h+' ঘণ্টা আগে';
+  return new Date(ts).toLocaleDateString('bn-BD');
+}
+function _isUrl(v){ try{ return /^https?:\/\//.test(v.trim()); }catch(e){ return false; } }
+
 $('submission-filter-select').addEventListener('change', renderAdminSubmissions);
 async function renderAdminSubmissions(){
   const snap = await db.ref('taskSubmissions').once('value');
   const obj = snap.val()||{};
   const filter = $('submission-filter-select').value;
-  const arr = Object.entries(obj).filter(([id,s])=>filter==='all'||s.status===filter).sort((a,b)=>(b[1].submittedAt||0)-(a[1].submittedAt||0));
-  $('submission-admin-list').innerHTML = arr.map(([id,s])=>{
-    const taskTitle = (TASKS[s.taskId]&&TASKS[s.taskId].title)||'—';
-    const fieldsHtml = (s.fieldsMeta||[]).map(f=>`<div class="a-item-sub">${esc(f.label)}: <b style="color:var(--text)">${esc((s.data&&s.data[f.id])||'—')}</b></div>`).join('');
-    return `<div class="a-card">
-      <div class="a-row-between">
-        <div><div class="a-item-title">${esc(s.userName)} · ${esc(taskTitle)}</div>${fieldsHtml}</div>
-        <div class="status-pill ${s.status}">${s.status}</div>
-      </div>
-      ${s.status==='pending'?`<div style="display:flex;gap:8px;margin-top:10px;">
-        <button class="btn btn-success btn-sm" data-subapprove="${id}">✔ Approve</button>
-        <button class="btn btn-danger btn-sm" data-subreject="${id}">✕ Reject</button>
-      </div>`:''}
-    </div>`;
-  }).join('') || '<div class="empty-note">কোনো সাবমিশন নেই</div>';
-  document.querySelectorAll('[data-subapprove]').forEach(b=>b.addEventListener('click', ()=>processSubmission(b.dataset.subapprove,'approved')));
-  document.querySelectorAll('[data-subreject]').forEach(b=>b.addEventListener('click', ()=>processSubmission(b.dataset.subreject,'rejected')));
-}
-async function processSubmission(id, status){
-  const snap = await db.ref('taskSubmissions/'+id).once('value');
-  const s = snap.val(); if(!s) return;
-  await db.ref('taskSubmissions/'+id).update({status, processedAt:Date.now()});
-  await db.ref('users/'+s.userId+'/pendingSubmissions/'+s.taskId).remove();
-  if(status==='approved'){
-    const t = TASKS[s.taskId];
-    if(t) await awardTaskReward(s.userId, s.taskId, t);
-  }else if(status==='rejected' && Array.isArray(s.emailHashes)){
-    for(const hash of s.emailHashes){ await db.ref('usedEmails/'+hash).remove(); }
+  const arr = Object.entries(obj)
+    .filter(([id,s])=>filter==='all'||s.status===filter)
+    .sort((a,b)=>(b[1].submittedAt||0)-(a[1].submittedAt||0));
+
+  if(!arr.length){
+    $('submission-admin-list').innerHTML='<div class="empty-note">কোনো সাবমিশন নেই</div>';
+    return;
   }
-  toast(status==='approved'?'অনুমোদিত ও রিওয়ার্ড দেওয়া হয়েছে':'বাতিল করা হয়েছে','success');
-  renderAdminSubmissions(); renderAdminDash();
+
+  const statusLabel={pending:'⏳ Pending',approved:'✅ Approved',rejected:'❌ Rejected'};
+  const taskCatName=id=>{ const t=TASKS[id]; if(!t) return ''; const c=CATEGORIES[t.categoryId]; return c?c.name:''; };
+
+  $('submission-admin-list').innerHTML = arr.map(([id,s])=>{
+    const initials = (s.userName||'U').trim().replace(/[^a-zA-Z\u0980-\u09FF\s]/g,'').split(/\s+/).map(w=>w[0]||'').join('').slice(0,2).toUpperCase()||'U';
+    const tgHandle = s.userTgUsername ? `<span class="tg-handle">@${esc(s.userTgUsername)}</span>` : '';
+    const catName = taskCatName(s.taskId);
+    const taskTitle = s.taskTitle || (TASKS[s.taskId]&&TASKS[s.taskId].title) || '—';
+
+    const fieldsHtml = (s.fieldsMeta||[]).map(f=>{
+      const val = (s.data&&s.data[f.id])||'—';
+      const valHtml = _isUrl(val)
+        ? `<a href="${esc(val)}" target="_blank" rel="noopener">${esc(val)}</a>`
+        : esc(val);
+      return `<div class="sub-field-row">
+        <div class="sub-field-label">${esc(f.label)}</div>
+        <div class="sub-field-val">${valHtml}</div>
+      </div>`;
+    }).join('');
+
+    const statusDot = {pending:'🟡',approved:'🟢',rejected:'🔴'}[s.status]||'⚪';
+    return `<div class="sub-card ${s.status}-card" data-sub-id="${id}">
+      <div class="sub-card-head">
+        <div class="sub-ava">${initials}</div>
+        <div class="sub-user-info">
+          <div class="sub-user-name">${esc(s.userName||'Unknown')}</div>
+          <div class="sub-user-meta">
+            ${tgHandle}
+            <span class="uid-chip">ID: ${esc(String(s.userId||''))} </span>
+          </div>
+        </div>
+        <div class="sub-status-badge ${s.status}">${statusDot} ${statusLabel[s.status]||s.status}</div>
+      </div>
+      <div class="sub-task-row">
+        <span style="font-size:13px;">📋</span>
+        <span class="sub-task-name">${catName?`<span style="opacity:.6;font-size:10px;">${esc(catName)} › </span>`:''}${esc(taskTitle)}</span>
+        <span class="sub-time">🕒 ${_timeAgo(s.submittedAt)}</span>
+      </div>
+      ${fieldsHtml?`<div class="sub-fields">${fieldsHtml}</div>`:''}
+      ${s.status==='pending'
+        ?`<div class="sub-actions">
+            <button class="sub-btn sub-btn-approve" data-subapprove="${id}">✔ Approve</button>
+            <button class="sub-btn sub-btn-reject" data-subreject="${id}">✕ Reject</button>
+          </div>`
+        :`<div class="sub-proc-note">প্রসেস হয়েছে: ${new Date(s.processedAt||s.submittedAt).toLocaleString('en-US',{hour:'2-digit',minute:'2-digit',day:'numeric',month:'short'})}</div>`
+      }
+    </div>`;
+  }).join('');
+
+  document.querySelectorAll('[data-subapprove]').forEach(b=>{
+    b.addEventListener('click', ()=>processSubmission(b.dataset.subapprove,'approved',b));
+  });
+  document.querySelectorAll('[data-subreject]').forEach(b=>{
+    b.addEventListener('click', ()=>processSubmission(b.dataset.subreject,'rejected',b));
+  });
+}
+/* in-memory lock prevents same submission being double-processed in this session */
+const _processingIds = new Set();
+async function processSubmission(id, status, btn){
+  if(_processingIds.has(id)){ toast('ইতিমধ্যে প্রসেস হচ্ছে, অপেক্ষা করুন…','error'); return; }
+  _processingIds.add(id);
+  /* disable all approve/reject buttons for this card immediately */
+  const card = btn && btn.closest('.sub-card');
+  const cardBtns = card ? card.querySelectorAll('.sub-btn') : [];
+  cardBtns.forEach(b=>{ b.disabled=true; });
+  if(btn){ btn.textContent = status==='approved'?'⏳ প্রসেস হচ্ছে…':'⏳ বাতিল হচ্ছে…'; }
+
+  try{
+    /* ── ATOMIC LOCK via Firebase transaction ──
+       Only transitions from 'pending' → approved/rejected.
+       If another click already moved it out of 'pending', the transaction aborts. */
+    let aborted = false;
+    await db.ref('taskSubmissions/'+id+'/status').transaction(cur => {
+      if(cur !== 'pending'){ aborted = true; return undefined; /* abort */ }
+      return status;
+    });
+
+    if(aborted){
+      toast('এই সাবমিশন ইতিমধ্যে প্রসেস হয়ে গেছে','error');
+      _processingIds.delete(id);
+      renderAdminSubmissions();
+      return;
+    }
+
+    const snap = await db.ref('taskSubmissions/'+id).once('value');
+    const s = snap.val(); if(!s){ _processingIds.delete(id); return; }
+    await db.ref('taskSubmissions/'+id).update({ processedAt: Date.now() });
+
+    /* clean up pending marker — handle both single-key and sub-keyed (unlimited) formats */
+    const pendRef = db.ref('users/'+s.userId+'/pendingSubmissions/'+s.taskId);
+    const pendSnap = await pendRef.once('value');
+    const pendVal = pendSnap.val();
+    if(pendVal && typeof pendVal === 'object'){
+      /* unlimited format: sub-keys → remove just this submission's key */
+      if(pendVal[id]) await pendRef.child(id).remove();
+      /* if no more sub-keys, remove the parent */
+      const remaining = Object.keys(pendVal).filter(k=>k!==id);
+      if(!remaining.length) await pendRef.remove();
+    } else {
+      await pendRef.remove();
+    }
+
+    if(status==='approved'){
+      const t = TASKS[s.taskId];
+      if(t) await awardTaskReward(s.userId, s.taskId, t);
+    } else if(status==='rejected' && Array.isArray(s.emailHashes)){
+      for(const hash of s.emailHashes){ await db.ref('usedEmails/'+hash).remove(); }
+    }
+
+    toast(status==='approved'?'✅ অনুমোদিত ও রিওয়ার্ড দেওয়া হয়েছে':'❌ বাতিল করা হয়েছে','success');
+    renderAdminSubmissions(); renderAdminDash();
+  } catch(err){
+    console.error(err);
+    toast('সমস্যা হয়েছে, আবার চেষ্টা করুন','error');
+    cardBtns.forEach(b=>{ b.disabled=false; });
+  } finally {
+    _processingIds.delete(id);
+  }
 }
 
 /* force join admin */
