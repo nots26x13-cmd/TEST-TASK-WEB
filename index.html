@@ -298,33 +298,32 @@ input::placeholder,textarea::placeholder{color:var(--text-dim2);}
 .badge-count{background:var(--danger);color:#fff;font-size:9px;font-weight:800;border-radius:10px;padding:2px 6px;margin-left:6px;}
 .empty-note{text-align:center;padding:30px 10px;color:var(--text-dim2);font-size:12.5px;}
 .search-bar{margin-bottom:12px;}
-
-/* ===== TASK FEATURE BOXES ===== */
-.task-feature-box{background:linear-gradient(135deg,rgba(124,92,255,0.07),rgba(18,183,158,0.07));border:1.5px solid rgba(124,92,255,0.22);border-radius:var(--radius-md);padding:14px 14px 12px;margin-bottom:12px;position:relative;overflow:hidden;}
-.task-feature-box::before{content:'';position:absolute;top:-40%;right:-15%;width:90px;height:90px;background:rgba(124,92,255,0.08);border-radius:50%;filter:blur(18px);pointer-events:none;}
-.task-feature-label{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.8px;color:var(--violet);margin-bottom:10px;display:flex;align-items:center;gap:5px;}
-.task-feature-value{flex:1;font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--text);word-break:break-all;line-height:1.4;}
-.task-feature-row{display:flex;align-items:center;gap:7px;position:relative;}
-.tfeat-btn{flex-shrink:0;height:33px;border-radius:9px;padding:0 12px;font-size:11.5px;font-weight:700;border:1px solid var(--border-hi);background:var(--glass);color:var(--text);transition:all .15s;cursor:pointer;}
-.tfeat-btn:active{transform:scale(.93);}
-.tfeat-copy{background:var(--aurora);color:#fff!important;border:none!important;box-shadow:0 2px 10px rgba(124,92,255,.25);}
-.twofa-input-field{border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:11px 13px;font-family:var(--font-mono);font-size:13px;width:100%;background:var(--elev-1);color:var(--text);margin-bottom:8px;transition:border-color .15s;}
-.twofa-input-field:focus{border-color:var(--violet);outline:none;}
-.twofa-code-wrap{background:rgba(20,28,48,0.035);border-radius:var(--radius-md);padding:16px 10px 12px;text-align:center;border:1px solid var(--border);margin-top:2px;}
-.twofa-code-digits{font-family:var(--font-mono);font-size:32px;font-weight:800;letter-spacing:8px;background:var(--aurora);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:4px;animation:popIn .3s ease both;}
-.twofa-code-timer{font-size:10px;color:var(--text-dim2);font-weight:600;margin-bottom:10px;}
-/* Admin Feature Toggle Group */
-.feat-toggle-group{background:var(--glass);border:1.5px solid rgba(124,92,255,0.2);border-radius:var(--radius-md);padding:14px;margin-bottom:8px;position:relative;overflow:hidden;}
-.feat-toggle-group::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--aurora);opacity:.35;}
-.feat-toggle-group-title{font-size:12px;font-weight:800;letter-spacing:.5px;color:var(--violet);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
-.feat-toggle-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
-.feat-toggle-row:last-child{border-bottom:none;padding-bottom:0;}
-.feat-toggle-row:first-child{padding-top:0;}
-.feat-toggle-info{flex:1;}
-.feat-toggle-title{font-size:12px;font-weight:800;color:var(--text);letter-spacing:.3px;}
-.feat-toggle-sub{font-size:10px;color:var(--text-dim2);margin-top:2px;line-height:1.4;}
-/* Enhanced UI polish */
-.task-card{transition:transform .15s,box-shadow .15s;}
+/* ── FEATURE BOXES (user task modal) ── */
+.feat-box{background:linear-gradient(135deg,rgba(124,92,255,.08),rgba(18,183,158,.06));border:1.5px solid rgba(124,92,255,.2);border-radius:14px;padding:14px;margin-bottom:12px;position:relative;overflow:hidden;}
+.feat-box::after{content:'';position:absolute;top:-30px;right:-20px;width:80px;height:80px;border-radius:50%;background:rgba(124,92,255,.07);filter:blur(16px);pointer-events:none;}
+.feat-label{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.8px;color:var(--violet);margin-bottom:9px;display:flex;align-items:center;gap:5px;}
+.feat-row{display:flex;align-items:center;gap:7px;flex-wrap:nowrap;}
+.feat-val{flex:1;font-family:var(--font-mono);font-size:13.5px;font-weight:700;color:var(--text);word-break:break-all;line-height:1.4;}
+.fbt{flex-shrink:0;height:32px;border-radius:9px;padding:0 11px;font-size:11.5px;font-weight:700;border:1.5px solid var(--border-hi);background:var(--glass);color:var(--text);cursor:pointer;transition:all .14s;}
+.fbt:active{transform:scale(.92);}
+.fbt-copy{background:var(--aurora);color:#fff;border:none;box-shadow:0 2px 10px rgba(124,92,255,.22);}
+.twofa-key-inp{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:11px 13px;font-family:var(--font-mono);font-size:13px;background:var(--elev-1);color:var(--text);margin-bottom:8px;transition:border-color .15s;}
+.twofa-key-inp:focus{border-color:var(--violet);outline:none;}
+.twofa-box{text-align:center;border:1px solid var(--border);border-radius:12px;padding:16px 10px 12px;background:rgba(20,28,48,.03);}
+.twofa-digits{font-family:var(--font-mono);font-size:30px;font-weight:800;letter-spacing:7px;background:var(--aurora);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:3px;}
+.twofa-timer{font-size:10px;color:var(--text-dim2);font-weight:600;margin-bottom:9px;}
+/* ── FEATURE TOGGLE GROUP (admin task form) ── */
+.ftg{border:1.5px solid rgba(124,92,255,.18);border-radius:14px;padding:14px;margin-bottom:8px;background:var(--glass);position:relative;overflow:hidden;}
+.ftg::before{content:'';position:absolute;top:0;left:0;right:0;height:2.5px;background:var(--aurora);border-radius:14px 14px 0 0;}
+.ftg-title{font-size:11.5px;font-weight:800;letter-spacing:.4px;color:var(--violet);margin-bottom:12px;display:flex;align-items:center;gap:5px;}
+.ftr{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.ftr:first-of-type{padding-top:0;}
+.ftr:last-of-type{border-bottom:none;padding-bottom:0;}
+.ftr-info{flex:1;}
+.ftr-title{font-size:12px;font-weight:800;color:var(--text);letter-spacing:.25px;}
+.ftr-sub{font-size:10px;color:var(--text-dim2);margin-top:2px;line-height:1.4;}
+/* Polish */
+.task-card{transition:transform .14s,box-shadow .14s;}
 .task-card:hover{transform:translateY(-1px);box-shadow:var(--shadow-md);}
 </style>
 </head>
@@ -642,35 +641,38 @@ input::placeholder,textarea::placeholder{color:var(--text-dim2);}
         <div class="field"><label>প্রতি টাস্কে রিওয়ার্ড (৳)</label><input id="task-reward-input" type="number" placeholder="2.00"></div>
         <div class="field"><label>সর্বমোট সর্বোচ্চ কতবার সম্পন্ন হবে (সব ইউজার মিলিয়ে, 0 = আনলিমিটেড)</label><input id="task-limit-input" type="number" placeholder="0"></div>
         <div class="field"><label>একজন ইউজার সর্বোচ্চ কতবার করতে পারবে (0 = আনলিমিটেড, খালি রাখলে ১ বার)</label><input id="task-peruserlimit-input" type="number" placeholder="1"></div>
-        <div id="task-form-features-wrap" class="feat-toggle-group hidden">
-          <div class="feat-toggle-group-title">⚡ Form Features</div>
-          <div class="feat-toggle-row">
-            <div class="feat-toggle-info">
-              <div class="feat-toggle-title">🔐 REQUIRE FIXED PASSWORD</div>
-              <div class="feat-toggle-sub">User form-এ একটি নির্দিষ্ট password দেখাবে, copy করা যাবে</div>
+        <div id="feat-wrap" class="ftg hidden">
+          <div class="ftg-title">⚡ Form Features</div>
+
+          <div class="ftr">
+            <div class="ftr-info">
+              <div class="ftr-title">🔐 REQUIRE FIXED PASSWORD</div>
+              <div class="ftr-sub">User form-এ একটি নির্দিষ্ট password দেখাবে — copy করা যাবে</div>
             </div>
-            <div class="toggle" id="toggle-feat-fixpass"></div>
+            <div class="toggle" id="ft-fixpass"></div>
           </div>
-          <div class="field hidden" id="fixed-pass-field-wrap" style="margin:10px 0 2px;">
-            <label>Password Text</label>
-            <input id="task-fixed-password-input" placeholder="User যে password দেখবে ও copy করবে">
+          <div class="field hidden" id="ft-fixpass-field" style="margin:10px 0 2px;">
+            <label>Password / Text</label>
+            <input id="ft-fixpass-val" placeholder="User যে text টি copy করবে সেটা লিখুন">
           </div>
-          <div class="feat-toggle-row">
-            <div class="feat-toggle-info">
-              <div class="feat-toggle-title">👤 AUTO USERNAME SUGGEST</div>
-              <div class="feat-toggle-sub">User form-এ auto username suggest করবে, refresh ও copy করা যাবে</div>
+
+          <div class="ftr">
+            <div class="ftr-info">
+              <div class="ftr-title">👤 AUTO USERNAME SUGGEST</div>
+              <div class="ftr-sub">User form-এ auto username suggest করবে, refresh ও copy করা যাবে</div>
             </div>
-            <div class="toggle" id="toggle-feat-autousername"></div>
+            <div class="toggle" id="ft-uname"></div>
           </div>
-          <div class="feat-toggle-row">
-            <div class="feat-toggle-info">
-              <div class="feat-toggle-title">🔑 2FA FEATURE</div>
-              <div class="feat-toggle-sub">User তার 2FA Secret Key দিলে auto TOTP code generate হবে</div>
+
+          <div class="ftr">
+            <div class="ftr-info">
+              <div class="ftr-title">🔑 2FA FEATURE</div>
+              <div class="ftr-sub">User তার 2FA Secret Key দিলে auto TOTP code generate হবে</div>
             </div>
-            <div class="toggle" id="toggle-feat-2fa"></div>
+            <div class="toggle" id="ft-2fa"></div>
           </div>
         </div>
-                <button class="btn btn-primary btn-block" id="task-add-btn">+ Add Task</button>
+        <button class="btn btn-primary btn-block" id="task-add-btn">+ Add Task</button>
       </div>
       <div id="task-admin-list"></div>
     </div>
@@ -1295,44 +1297,45 @@ function openTaskModal(taskId){
       <div class="field"><label>${esc(f.label)}${f.required?' *':''}</label>
       <input type="${inputType(f.type)}" data-fieldid="${esc(f.id)}" data-required="${f.required?1:0}" data-restrict="${esc(f.restrict||'none')}" data-validate="${f.validate===false?0:1}" data-domains="${esc(f.emailDomains||'')}" placeholder="${esc(fieldPlaceholderFor(f.restrict,f.emailDomains)||f.label)}"></div>`).join('');
     /* ── feature boxes ── */
-    let _fbHtml = '';
-    if(t.fixedPasswordEnabled && t.fixedPassword){
-      _fbHtml += `<div class="task-feature-box">
-        <div class="task-feature-label">🔐 Fixed Password</div>
-        <div class="task-feature-row">
-          <span class="task-feature-value" id="tfeat-fixpass-val">${esc(t.fixedPassword)}</span>
-          <button class="tfeat-btn tfeat-copy" id="tfeat-fixpass-copy">📋 Copy</button>
+    let _fboxHtml = '';
+    if(t.featFixedPass && t.featFixedPassVal){
+      _fboxHtml += `<div class="feat-box">
+        <div class="feat-label">🔐 Fixed Password</div>
+        <div class="feat-row">
+          <span class="feat-val" id="fbox-pass-val">${esc(t.featFixedPassVal)}</span>
+          <button class="fbt fbt-copy" id="fbox-pass-copy">📋 Copy</button>
         </div>
       </div>`;
     }
-    if(t.autoUsernameEnabled){
-      _fbHtml += `<div class="task-feature-box">
-        <div class="task-feature-label">👤 Suggested Username</div>
-        <div class="task-feature-row">
-          <span class="task-feature-value" id="tfeat-username-val">লোড হচ্ছে…</span>
-          <button class="tfeat-btn" id="tfeat-refresh-btn" title="নতুন username">🔄</button>
-          <button class="tfeat-btn tfeat-copy" id="tfeat-username-copy">📋 Copy</button>
+    if(t.featAutoUname){
+      _fboxHtml += `<div class="feat-box">
+        <div class="feat-label">👤 Suggested Username</div>
+        <div class="feat-row">
+          <span class="feat-val" id="fbox-uname-val">লোড হচ্ছে…</span>
+          <button class="fbt" id="fbox-uname-refresh" title="নতুন username">🔄</button>
+          <button class="fbt fbt-copy" id="fbox-uname-copy">📋 Copy</button>
         </div>
       </div>`;
     }
-    if(t.twoFAEnabled){
-      _fbHtml += `<div class="task-feature-box">
-        <div class="task-feature-label">🔑 2FA Code Generator</div>
-        <input class="twofa-input-field" id="tfeat-2fa-key" placeholder="2FA Secret Key দিন (e.g. JBSWY3DPEHPK3PXP)">
-        <button class="btn btn-ghost btn-block btn-sm" id="tfeat-2fa-generate" style="margin-bottom:4px;">⚡ Generate Code</button>
-        <div id="tfeat-2fa-result" class="hidden" style="margin-top:6px;">
-          <div class="twofa-code-wrap">
-            <div class="twofa-code-digits" id="tfeat-2fa-code">000000</div>
-            <div class="twofa-code-timer" id="tfeat-2fa-timer"></div>
-            <button class="tfeat-btn tfeat-copy" id="tfeat-2fa-copy">📋 Code Copy করুন</button>
+    if(t.feat2FA){
+      _fboxHtml += `<div class="feat-box">
+        <div class="feat-label">🔑 2FA Code Generator</div>
+        <input class="twofa-key-inp" id="fbox-2fa-key" placeholder="2FA Secret Key দিন (e.g. JBSWY3DPEHPK3PXP)">
+        <button class="btn btn-ghost btn-block btn-sm" id="fbox-2fa-gen" style="margin-bottom:6px;">⚡ Generate Code</button>
+        <div id="fbox-2fa-result" class="hidden">
+          <div class="twofa-box">
+            <div class="twofa-digits" id="fbox-2fa-code">000000</div>
+            <div class="twofa-timer" id="fbox-2fa-timer"></div>
+            <button class="fbt fbt-copy" id="fbox-2fa-copy">📋 Code Copy করুন</button>
           </div>
         </div>
       </div>`;
     }
+    const _hf = _fboxHtml.length > 0;
     $('task-modal-body').innerHTML = `
       <div style="font-size:13px;color:var(--text-dim);line-height:1.6;margin-bottom:14px;">${esc(t.description||'')}</div>
-      <div class="a-row-between" style="margin-bottom:${_fbHtml?'12':'16'}px;"><span class="a-item-sub">রিওয়ার্ড (এডমিন অনুমোদনের পর)</span><span class="task-reward">+৳${money(t.reward)}</span></div>
-      ${_fbHtml}
+      <div class="a-row-between" style="margin-bottom:${_hf?'12':'16'}px;"><span class="a-item-sub">রিওয়ার্ড (এডমিন অনুমোদনের পর)</span><span class="task-reward">+৳${money(t.reward)}</span></div>
+      ${_fboxHtml}
       ${fieldsHtml}
       <button class="btn btn-primary btn-block" id="task-modal-action-btn" style="margin-top:6px;">📤 জমা দিন</button>
       <div class="help-note">তথ্য জমা দেওয়ার পর এডমিন যাচাই করে রিওয়ার্ড দেবে।</div>
@@ -1341,48 +1344,37 @@ function openTaskModal(taskId){
       inp.addEventListener('input', ()=>validateFieldEl(inp));
     });
     /* bind feature events */
-    if(t.fixedPasswordEnabled && t.fixedPassword){
-      const _fpv = t.fixedPassword;
-      $('tfeat-fixpass-copy').addEventListener('click', ()=>_copyToClipboard(_fpv,'✅ Password কপি হয়েছে!'));
+    if(t.featFixedPass && t.featFixedPassVal){
+      const _pv = t.featFixedPassVal;
+      $('fbox-pass-copy').addEventListener('click', ()=>_copyToClipboard(_pv,'✅ Password কপি হয়েছে!'));
     }
-    if(t.autoUsernameEnabled){
-      const _setUname = ()=>{
-        const u = generateSuggestedUsername();
-        $('tfeat-username-val').textContent = u;
-      };
-      _setUname();
-      $('tfeat-refresh-btn').addEventListener('click', _setUname);
-      $('tfeat-username-copy').addEventListener('click', ()=>_copyToClipboard($('tfeat-username-val').textContent,'✅ Username কপি হয়েছে!'));
+    if(t.featAutoUname){
+      const _setU = ()=>{ $('fbox-uname-val').textContent = _genUsername(); };
+      _setU();
+      $('fbox-uname-refresh').addEventListener('click', _setU);
+      $('fbox-uname-copy').addEventListener('click', ()=>_copyToClipboard($('fbox-uname-val').textContent,'✅ Username কপি হয়েছে!'));
     }
-    if(t.twoFAEnabled){
-      let _twofaTimer = null;
-      $('tfeat-2fa-generate').addEventListener('click', async ()=>{
-        const key = $('tfeat-2fa-key').value.trim();
+    if(t.feat2FA){
+      let _tTimer = null;
+      $('fbox-2fa-gen').addEventListener('click', async ()=>{
+        const key = $('fbox-2fa-key').value.trim();
         if(!key){ toast('2FA Secret Key দিন','error'); return; }
         try{
-          const code = await generateTOTP(key);
-          $('tfeat-2fa-code').textContent = code;
-          $('tfeat-2fa-result').classList.remove('hidden');
-          const _updateTimer = ()=>{
-            const rem = 30 - (Math.floor(Date.now()/1000)%30);
-            const el = $('tfeat-2fa-timer');
-            if(el) el.textContent = '⏱️ '+rem+'s এ নতুন কোড আসবে';
-          };
-          _updateTimer();
-          if(_twofaTimer) clearInterval(_twofaTimer);
-          _twofaTimer = setInterval(async ()=>{
-            _updateTimer();
+          const code = await _genTOTP(key);
+          $('fbox-2fa-code').textContent = code;
+          $('fbox-2fa-result').classList.remove('hidden');
+          const _tick=()=>{ const r=30-(Math.floor(Date.now()/1000)%30); const el=$('fbox-2fa-timer'); if(el) el.textContent='⏱️ '+r+'s এতে নতুন কোড আসবে'; };
+          _tick();
+          if(_tTimer) clearInterval(_tTimer);
+          _tTimer = setInterval(async ()=>{
+            _tick();
             if((Math.floor(Date.now()/1000)%30)===0){
-              try{
-                const k = $('tfeat-2fa-key'); if(!k) return;
-                const nc = await generateTOTP(k.value.trim());
-                const cd = $('tfeat-2fa-code'); if(cd) cd.textContent = nc;
-              }catch(e){}
+              try{ const k=$('fbox-2fa-key'); if(k){ const c=await _genTOTP(k.value.trim()); const el=$('fbox-2fa-code'); if(el) el.textContent=c; } }catch(e){}
             }
           }, 1000);
         }catch(e){ toast('Invalid 2FA Secret Key!','error'); }
       });
-      $('tfeat-2fa-copy').addEventListener('click', ()=>_copyToClipboard($('tfeat-2fa-code').textContent,'✅ 2FA Code কপি হয়েছে!'));
+      $('fbox-2fa-copy').addEventListener('click', ()=>_copyToClipboard($('fbox-2fa-code').textContent,'✅ 2FA Code কপি হয়েছে!'));
     }
     $('task-modal-action-btn').addEventListener('click', ()=>submitFormTask(taskId));
   }else{
@@ -1766,7 +1758,7 @@ $('task-type-select').addEventListener('change', ()=>{
   const type = $('task-type-select').value;
   $('task-fields-builder-wrap').classList.toggle('hidden', type!=='form');
   $('task-target-wrap').classList.toggle('hidden', type==='form');
-  $('task-form-features-wrap').classList.toggle('hidden', type!=='form');
+  $('feat-wrap').classList.toggle('hidden', type!=='form');
 });
 function renderAdminTasks(){
   const list = Object.entries(TASKS);
@@ -1807,24 +1799,25 @@ $('task-add-btn').addEventListener('click', async ()=>{
   if(!title||!reward){ toast('টাইটেল ও রিওয়ার্ড দিন','error'); return; }
   if(type==='join' && !target){ toast('চ্যানেল ইউজারনেম দিন','error'); return; }
   if(type==='form' && taskFieldsDraft.length===0){ toast('অন্তত একটি রিকোয়ারমেন্ট ফিল্ড যোগ করুন','error'); return; }
-  const fixedPassOn = $('toggle-feat-fixpass').classList.contains('on');
-  const autoUsernameOn = $('toggle-feat-autousername').classList.contains('on');
-  const twoFAOn = $('toggle-feat-2fa').classList.contains('on');
-  const fixedPasswordText = $('task-fixed-password-input').value.trim();
+  /* read feature toggles */
+  const _fpOn  = $('ft-fixpass').classList.contains('on');
+  const _unOn  = $('ft-uname').classList.contains('on');
+  const _2fOn  = $('ft-2fa').classList.contains('on');
+  const _fpTxt = $('ft-fixpass-val').value.trim();
   const payload = {categoryId,title,description,type,target,reward,maxCompletions,perUserLimit,completions:0,active:true,createdAt:Date.now()};
   if(type==='form') payload.fields = taskFieldsDraft.slice();
-  if(fixedPassOn && fixedPasswordText){ payload.fixedPasswordEnabled=true; payload.fixedPassword=fixedPasswordText; }
-  if(autoUsernameOn) payload.autoUsernameEnabled=true;
-  if(twoFAOn) payload.twoFAEnabled=true;
+  if(_fpOn && _fpTxt){ payload.featFixedPass=true; payload.featFixedPassVal=_fpTxt; }
+  if(_unOn) payload.featAutoUname=true;
+  if(_2fOn) payload.feat2FA=true;
   await db.ref('tasks').push(payload);
   ['task-title-input','task-desc-input','task-target-input','task-reward-input','task-limit-input','task-peruserlimit-input'].forEach(id=>$(id).value='');
   taskFieldsDraft = [];
   renderTaskFieldsDraft();
   $('task-fields-builder-wrap').classList.add('hidden');
-  $('task-form-features-wrap').classList.add('hidden');
-  ['toggle-feat-fixpass','toggle-feat-autousername','toggle-feat-2fa'].forEach(id=>{$(id).classList.remove('on');});
-  $('fixed-pass-field-wrap').classList.add('hidden');
-  $('task-fixed-password-input').value='';
+  $('feat-wrap').classList.add('hidden');
+  ['ft-fixpass','ft-uname','ft-2fa'].forEach(id=>$(id).classList.remove('on'));
+  $('ft-fixpass-field').classList.add('hidden');
+  $('ft-fixpass-val').value='';
   $('task-type-select').value = 'join';
   renderAdminTasks();
   toast('টাস্ক যোগ করা হয়েছে','success');
@@ -2073,6 +2066,66 @@ $('save-refsettings-btn').addEventListener('click', async ()=>{
   toast('সেভ হয়েছে','success');
 });
 document.querySelectorAll('.toggle').forEach(t=>t.addEventListener('click', ()=>t.classList.toggle('on')));
+
+/* ════════════════════════════════
+   USERNAME GENERATOR
+   ════════════════════════════════ */
+function _genUsername(){
+  const t=Math.floor(Math.random()*3);
+  if(t===0){
+    const fn=['vikas','rajan','amit','rahul','arjun','rohit','ankit','aditya','priya','neha','divya','sandy','kevin','james','emma','noah','ethan','rahim','karim','tasin','nabil','sakib','hasan','farid','siam'];
+    const ln=['smith','jones','sharma','verma','gupta','kumar','singh','patel','khan','mishra','brown','davis','miller','wilson','chowdhury','rahman','hossain','ahmed','akter','begum'];
+    return fn[fn.length*Math.random()|0]+ln[ln.length*Math.random()|0]+(10000+(Math.random()*89999|0));
+  }else if(t===1){
+    const ch='abcdefghijklmnopqrstuvwxyz',len=5+(Math.random()*5|0);
+    let s=''; for(let i=0;i<len;i++) s+=ch[ch.length*Math.random()|0];
+    return s+(100+(Math.random()*9900|0));
+  }else{
+    const w=['cool','fast','pro','mega','ultra','super','star','ace','nova','apex','fire','swift','elite','sharp'];
+    const s=['user','gamer','dev','pro','bd','fx','vip','x'];
+    return w[w.length*Math.random()|0]+s[s.length*Math.random()|0]+(100+(Math.random()*9900|0));
+  }
+}
+
+/* ════════════════════════════════
+   TOTP / 2FA CODE GENERATOR
+   ════════════════════════════════ */
+function _b32dec(inp){
+  const B='ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+  inp=inp.toUpperCase().replace(/\s+/g,'').replace(/=+$/,'');
+  let bits=0,val=0; const bytes=[];
+  for(let i=0;i<inp.length;i++){
+    const idx=B.indexOf(inp[i]); if(idx<0) continue;
+    val=(val<<5)|idx; bits+=5;
+    if(bits>=8){ bytes.push((val>>>(bits-8))&0xff); bits-=8; }
+  }
+  return new Uint8Array(bytes);
+}
+async function _genTOTP(secret){
+  const kb=_b32dec(secret.trim());
+  if(!kb.length) throw new Error('bad key');
+  const ctr=Math.floor(Date.now()/30000);
+  const buf=new ArrayBuffer(8), dv=new DataView(buf);
+  dv.setUint32(0,Math.floor(ctr/0x100000000),false);
+  dv.setUint32(4,ctr>>>0,false);
+  const ck=await crypto.subtle.importKey('raw',kb,{name:'HMAC',hash:'SHA-1'},false,['sign']);
+  const sig=new Uint8Array(await crypto.subtle.sign('HMAC',ck,buf));
+  const off=sig[19]&0x0f;
+  const code=(((sig[off]&0x7f)<<24)|((sig[off+1]&0xff)<<16)|((sig[off+2]&0xff)<<8)|(sig[off+3]&0xff))%1000000;
+  return String(code).padStart(6,'0');
+}
+
+/* fixpass toggle → show/hide password input */
+(function(){
+  const btn=document.getElementById('ft-fixpass');
+  if(btn) btn.addEventListener('click',()=>{
+    setTimeout(()=>{
+      const w=document.getElementById('ft-fixpass-field');
+      if(w) w.classList.toggle('hidden',!btn.classList.contains('on'));
+    },0);
+  });
+})();
+
 $('save-wdsettings-btn').addEventListener('click', async ()=>{
   await db.ref('settings').update({
     minWithdraw: Number($('set-minwd').value)||110,
@@ -2086,73 +2139,6 @@ $('save-wdsettings-btn').addEventListener('click', async ()=>{
   });
   toast('সেভ হয়েছে','success');
 });
-
-/* ========== SUGGESTED USERNAME GENERATOR ========== */
-function generateSuggestedUsername(){
-  const t=Math.floor(Math.random()*3);
-  if(t===0){
-    const fn=['vikas','rajan','suresh','amit','rahul','varun','arjun','rohit','vikram','ankit','aditya','priya','neha','divya','shruti','sandy','kevin','james','emma','olivia','noah','liam','ethan','rahim','karim','tasin','nabil','sakib','hasan','farid'];
-    const ln=['smith','jones','sharma','verma','gupta','kumar','singh','patel','khan','mishra','yadav','brown','davis','miller','wilson','jackson','chowdhury','rahman','hossain','ahmed'];
-    const f=fn[Math.floor(Math.random()*fn.length)];
-    const l=ln[Math.floor(Math.random()*ln.length)];
-    return f+l+(10000+Math.floor(Math.random()*89999));
-  }else if(t===1){
-    const ch='abcdefghijklmnopqrstuvwxyz';
-    const len=5+Math.floor(Math.random()*5);
-    let s='';
-    for(let i=0;i<len;i++) s+=ch[Math.floor(Math.random()*ch.length)];
-    return s+(100+Math.floor(Math.random()*9900));
-  }else{
-    const words=['cool','fast','pro','mega','ultra','super','star','ace','nova','apex','fire','swift','elite','sharp','dark'];
-    const sfx=['user','gamer','dev','pro','bd','fx','vip','x'];
-    const w=words[Math.floor(Math.random()*words.length)];
-    const s=sfx[Math.floor(Math.random()*sfx.length)];
-    return w+s+(100+Math.floor(Math.random()*9900));
-  }
-}
-
-/* ========== TOTP / 2FA CODE GENERATOR ========== */
-function _b32Decode(input){
-  const B32='ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
-  input=input.toUpperCase().replace(/\s+/g,'').replace(/=+$/,'');
-  let bits=0,value=0;
-  const bytes=[];
-  for(let i=0;i<input.length;i++){
-    const idx=B32.indexOf(input[i]);
-    if(idx<0) continue;
-    value=(value<<5)|idx; bits+=5;
-    if(bits>=8){ bytes.push((value>>>(bits-8))&0xff); bits-=8; }
-  }
-  return new Uint8Array(bytes);
-}
-async function generateTOTP(secret){
-  const keyBytes=_b32Decode(secret.trim());
-  if(keyBytes.length===0) throw new Error('Invalid key');
-  const counter=Math.floor(Date.now()/30000);
-  const buf=new ArrayBuffer(8);
-  const view=new DataView(buf);
-  view.setUint32(0,Math.floor(counter/0x100000000),false);
-  view.setUint32(4,counter>>>0,false);
-  const ck=await crypto.subtle.importKey('raw',keyBytes,{name:'HMAC',hash:'SHA-1'},false,['sign']);
-  const sig=await crypto.subtle.sign('HMAC',ck,buf);
-  const hash=new Uint8Array(sig);
-  const off=hash[19]&0x0f;
-  const code=(((hash[off]&0x7f)<<24)|((hash[off+1]&0xff)<<16)|((hash[off+2]&0xff)<<8)|(hash[off+3]&0xff))%1000000;
-  return String(code).padStart(6,'0');
-}
-
-/* ── feature toggle side-effects ── */
-/* toggle-feat-fixpass: show/hide password input field */
-(function(){
-  const btn = document.getElementById('toggle-feat-fixpass');
-  if(btn) btn.addEventListener('click', ()=>{
-    setTimeout(()=>{
-      const wrap = document.getElementById('fixed-pass-field-wrap');
-      if(wrap) wrap.classList.toggle('hidden', !btn.classList.contains('on'));
-    }, 0);
-  });
-})();
-
 </script>
 </body>
 </html>
