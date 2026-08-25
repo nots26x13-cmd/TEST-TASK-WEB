@@ -567,6 +567,52 @@ input::placeholder,textarea::placeholder{color:var(--text-dim2);}
   </div>
 </div>
 
+<!-- ===== ADMIN: CATEGORY EDIT MODAL ===== -->
+<div class="modal-overlay" id="edit-cat-modal">
+  <div class="modal-sheet">
+    <div class="modal-head"><div class="modal-title">✏️ ক্যাটাগরি এডিট</div><button class="modal-close" data-close="edit-cat-modal">✕</button></div>
+    <input type="hidden" id="edit-cat-id">
+    <div class="field"><label>নাম</label><input id="edit-cat-name" placeholder="ক্যাটাগরির নাম"></div>
+    <div class="field"><label>আইকন (ইমোজি)</label><input id="edit-cat-icon" placeholder="📢"></div>
+    <div class="field"><label>লোগো URL (ঐচ্ছিক)</label><input id="edit-cat-logo" placeholder="https://..."></div>
+    <button class="btn btn-primary btn-block" id="edit-cat-save-btn">💾 পরিবর্তন সেভ করুন</button>
+  </div>
+</div>
+
+<!-- ===== ADMIN: TASK EDIT MODAL ===== -->
+<div class="modal-overlay" id="edit-task-modal">
+  <div class="modal-sheet">
+    <div class="modal-head"><div class="modal-title">✏️ টাস্ক এডিট</div><button class="modal-close" data-close="edit-task-modal">✕</button></div>
+    <input type="hidden" id="edit-task-id">
+    <div class="field"><label>ক্যাটাগরি</label><select id="edit-task-cat"></select></div>
+    <div class="field"><label>টাইটেল</label><input id="edit-task-title" placeholder="টাস্কের শিরোনাম"></div>
+    <div class="field"><label>বিবরণ</label><textarea id="edit-task-desc" rows="2" placeholder="বিস্তারিত"></textarea></div>
+    <div class="field"><label>চ্যানেল ইউজারনেম / লিংক (join/link/custom)</label><input id="edit-task-target" placeholder="@username বা https://link"></div>
+    <div class="field"><label>রিওয়ার্ড (৳)</label><input id="edit-task-reward" type="number" placeholder="2.00"></div>
+    <div class="field"><label>সর্বমোট সর্বোচ্চ কতবার (0=আনলিমিটেড)</label><input id="edit-task-limit" type="number" placeholder="0"></div>
+    <div class="field"><label>প্রতি ইউজার সর্বোচ্চ কতবার (0=আনলিমিটেড)</label><input id="edit-task-peruserlimit" type="number" placeholder="1"></div>
+    <div style="border:1.5px solid rgba(124,92,255,.20);border-radius:14px;padding:14px;margin-bottom:12px;background:linear-gradient(135deg,rgba(124,92,255,.05),rgba(18,183,158,.04));">
+      <div style="font-size:12px;font-weight:800;color:var(--violet);margin-bottom:12px;">⚡ Task Features</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div><div style="font-size:12px;font-weight:700;">🔐 Fixed Password</div><div style="font-size:10px;color:var(--text-dim2);">নির্দিষ্ট পাসওয়ার্ড/টেক্সট দেখাবে</div></div>
+        <div class="toggle" id="edit-ft-fixpass"></div>
+      </div>
+      <div id="edit-ft-fixpass-field" style="display:none;margin-bottom:10px;">
+        <input id="edit-ft-fixpass-val" placeholder="Password / Secret Text" style="background:var(--elev-1);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;width:100%;">
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div><div style="font-size:12px;font-weight:700;">👤 Auto Username Suggest</div><div style="font-size:10px;color:var(--text-dim2);">Ultra-rare username suggest করবে</div></div>
+        <div class="toggle" id="edit-ft-uname"></div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div><div style="font-size:12px;font-weight:700;">🔑 2FA Feature</div><div style="font-size:10px;color:var(--text-dim2);">TOTP code generator</div></div>
+        <div class="toggle" id="edit-ft-2fa"></div>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-block" id="edit-task-save-btn">💾 পরিবর্তন সেভ করুন</button>
+  </div>
+</div>
+
 <!-- ===== ADMIN PANEL ===== -->
 <div id="admin-panel">
   <div class="admin-head">
@@ -1326,24 +1372,24 @@ function openTaskModal(taskId){
     const fieldsHtml = fields.map(f=>`
       <div class="field"><label>${esc(f.label)}${f.required?' *':''}</label>
       <input type="${inputType(f.type)}" data-fieldid="${esc(f.id)}" data-required="${f.required?1:0}" data-restrict="${esc(f.restrict||'none')}" data-validate="${f.validate===false?0:1}" data-domains="${esc(f.emailDomains||'')}" placeholder="${esc(fieldPlaceholderFor(f.restrict,f.emailDomains)||f.label)}"></div>`).join('');
-    /* ── feature boxes ── */
+    /* ── feature boxes ── username first, fixed-pass second ── */
     let _fboxHtml = '';
-    if(t.featFixedPass && t.featFixedPassVal){
+    if(t.featAutoUname){
       _fboxHtml += `<div class="feat-box">
-        <div class="feat-label">🔐 Fixed Password</div>
+        <div class="feat-label">👤 Suggested Username <span class="feat-label-badge">ULTRA RARE</span></div>
         <div class="feat-row">
-          <span class="feat-val" id="fbox-pass-val">${esc(t.featFixedPassVal)}</span>
-          <button class="fbt fbt-copy" id="fbox-pass-copy">📋 Copy</button>
+          <span class="feat-val" id="fbox-uname-val">লোড হচ্ছে…</span>
+          <button class="fbt fbt-refresh" id="fbox-uname-refresh" title="নতুন username">🔄</button>
+          <button class="fbt fbt-copy" id="fbox-uname-copy">📋 Copy</button>
         </div>
       </div>`;
     }
-    if(t.featAutoUname){
+    if(t.featFixedPass && t.featFixedPassVal){
       _fboxHtml += `<div class="feat-box">
-        <div class="feat-label">👤 Suggested Username</div>
+        <div class="feat-label">🔐 Fixed Password / Secret Text</div>
         <div class="feat-row">
-          <span class="feat-val" id="fbox-uname-val">লোড হচ্ছে…</span>
-          <button class="fbt" id="fbox-uname-refresh" title="নতুন username">🔄</button>
-          <button class="fbt fbt-copy" id="fbox-uname-copy">📋 Copy</button>
+          <span class="feat-val" id="fbox-pass-val">${esc(t.featFixedPassVal)}</span>
+          <button class="fbt fbt-copy" id="fbox-pass-copy">📋 Copy</button>
         </div>
       </div>`;
     }
@@ -1716,12 +1762,35 @@ function renderAdminCats(){
         ${c.logoUrl?`<img src="${esc(c.logoUrl)}" style="width:34px;height:34px;border-radius:10px;object-fit:cover;">`:`<div class="cat-icon" style="width:34px;height:34px;font-size:16px;">${esc(c.icon||'📋')}</div>`}
         <div class="a-item-title">${esc(c.name)}</div>
       </div>
-      <div class="a-mini-btns"><button class="mini-btn" data-delcat="${id}">🗑️</button></div>
+      <div class="a-mini-btns">
+        <button class="mini-btn" data-editcat="${id}" title="এডিট করুন">✏️</button>
+        <button class="mini-btn" data-delcat="${id}" title="ডিলিট করুন">🗑️</button>
+      </div>
     </div>`).join('') || '<div class="empty-note">কোনো ক্যাটাগরি নেই</div>';
   document.querySelectorAll('[data-delcat]').forEach(b=>b.addEventListener('click', ()=>{
     if(confirm('ক্যাটাগরি ও এর সব টাস্ক ডিলিট হয়ে যাবে। নিশ্চিত?')) deleteCategory(b.dataset.delcat);
   }));
+  document.querySelectorAll('[data-editcat]').forEach(b=>b.addEventListener('click', ()=>{
+    const id=b.dataset.editcat; const c=CATEGORIES[id]; if(!c) return;
+    $('edit-cat-id').value=id;
+    $('edit-cat-name').value=c.name||'';
+    $('edit-cat-icon').value=c.icon||'';
+    $('edit-cat-logo').value=c.logoUrl||'';
+    openModal('edit-cat-modal');
+  }));
 }
+$('edit-cat-save-btn').addEventListener('click', async ()=>{
+  const id=$('edit-cat-id').value; if(!id) return;
+  const name=$('edit-cat-name').value.trim();
+  const icon=$('edit-cat-icon').value.trim()||'📋';
+  const logoUrl=$('edit-cat-logo').value.trim();
+  if(!name){ toast('নাম দিন','error'); return; }
+  const upd={name,icon};
+  if(logoUrl) upd.logoUrl=logoUrl; else upd.logoUrl=null;
+  await db.ref('categories/'+id).update(upd);
+  toast('ক্যাটাগরি আপডেট হয়েছে','success');
+  closeModal('edit-cat-modal');
+});
 $('cat-add-btn').addEventListener('click', async ()=>{
   const name = $('cat-name-input').value.trim();
   const icon = $('cat-icon-input').value.trim()||'📋';
@@ -1792,17 +1861,26 @@ $('task-type-select').addEventListener('change', ()=>{
 });
 function renderAdminTasks(){
   const list = Object.entries(TASKS);
+  /* populate edit-task category dropdown */
+  const editCatSel = $('edit-task-cat');
+  editCatSel.innerHTML = Object.entries(CATEGORIES).map(([id,c])=>`<option value="${id}">${esc(c.name)}</option>`).join('');
+
   $('task-admin-list').innerHTML = list.map(([id,t])=>{
     const catName = (CATEGORIES[t.categoryId]&&CATEGORIES[t.categoryId].name)||'—';
     const fieldTag = t.type==='form' ? ` · 📝 ${(t.fields||[]).length}টি ফিল্ড` : '';
     const perUserLimit = t.perUserLimit==null ? 1 : Number(t.perUserLimit);
     const perUserTag = perUserLimit===1 ? '' : ` · 🔁 প্রতি ইউজার ${perUserLimit>0?perUserLimit+'বার':'আনলিমিটেড'}`;
+    const featTags = [t.featFixedPass?'🔐':'', t.featAutoUname?'👤':'', t.feat2FA?'🔑':''].filter(Boolean).join(' ');
     return `<div class="a-card">
       <div class="a-row-between">
-        <div><div class="a-item-title">${esc(t.title)}</div><div class="a-item-sub">${esc(catName)} · ৳${money(t.reward)} · ${(t.completions||0)}${t.maxCompletions>0?'/'+t.maxCompletions:''} সম্পন্ন${perUserTag}${fieldTag}</div></div>
+        <div style="flex:1;min-width:0;">
+          <div class="a-item-title">${esc(t.title)}${featTags?' <span style="font-size:11px;opacity:.7;">'+featTags+'</span>':''}</div>
+          <div class="a-item-sub">${esc(catName)} · ৳${money(t.reward)} · ${(t.completions||0)}${t.maxCompletions>0?'/'+t.maxCompletions:''} সম্পন্ন${perUserTag}${fieldTag}</div>
+        </div>
         <div class="a-mini-btns">
-          <div class="mini-btn" data-toggletask="${id}">${t.active!==false?'⏸️':'▶️'}</div>
-          <div class="mini-btn" data-deltask="${id}">🗑️</div>
+          <div class="mini-btn" data-edittask="${id}" title="এডিট">✏️</div>
+          <div class="mini-btn" data-toggletask="${id}" title="${t.active!==false?'বন্ধ করুন':'চালু করুন'}">${t.active!==false?'⏸️':'▶️'}</div>
+          <div class="mini-btn" data-deltask="${id}" title="ডিলিট">🗑️</div>
         </div>
       </div>
     </div>`;
@@ -1814,7 +1892,60 @@ function renderAdminTasks(){
     const id=b.dataset.toggletask; const cur = TASKS[id].active!==false;
     db.ref('tasks/'+id+'/active').set(!cur).then(renderAdminTasks);
   }));
+  document.querySelectorAll('[data-edittask]').forEach(b=>b.addEventListener('click', ()=>{
+    const id=b.dataset.edittask; const t=TASKS[id]; if(!t) return;
+    $('edit-task-id').value=id;
+    /* fill category dropdown */
+    const sel=$('edit-task-cat');
+    sel.innerHTML=Object.entries(CATEGORIES).map(([cid,c])=>`<option value="${cid}"${cid===t.categoryId?' selected':''}>${esc(c.name)}</option>`).join('');
+    $('edit-task-title').value=t.title||'';
+    $('edit-task-desc').value=t.description||'';
+    $('edit-task-target').value=t.target||'';
+    $('edit-task-reward').value=t.reward||'';
+    $('edit-task-limit').value=t.maxCompletions||0;
+    $('edit-task-peruserlimit').value=t.perUserLimit==null?1:t.perUserLimit;
+    /* features */
+    const toggleSet=(id,on)=>{ const el=$(id); if(on) el.classList.add('on'); else el.classList.remove('on'); };
+    toggleSet('edit-ft-fixpass', !!t.featFixedPass);
+    toggleSet('edit-ft-uname', !!t.featAutoUname);
+    toggleSet('edit-ft-2fa', !!t.feat2FA);
+    $('edit-ft-fixpass-val').value=t.featFixedPassVal||'';
+    $('edit-ft-fixpass-field').style.display=t.featFixedPass?'block':'none';
+    openModal('edit-task-modal');
+  }));
 }
+/* edit-task fixpass toggle — class toggled by global .toggle handler; we only need the field show/hide */
+$('edit-ft-fixpass').addEventListener('click',()=>{
+  setTimeout(()=>{ $('edit-ft-fixpass-field').style.display=$('edit-ft-fixpass').classList.contains('on')?'block':'none'; },0);
+});
+
+$('edit-task-save-btn').addEventListener('click', async ()=>{
+  const id=$('edit-task-id').value; if(!id) return;
+  const title=$('edit-task-title').value.trim();
+  const reward=Number($('edit-task-reward').value)||0;
+  if(!title||!reward){ toast('টাইটেল ও রিওয়ার্ড দিন','error'); return; }
+  const upd={
+    categoryId: $('edit-task-cat').value,
+    title,
+    description: $('edit-task-desc').value.trim(),
+    target: $('edit-task-target').value.trim(),
+    reward,
+    maxCompletions: Number($('edit-task-limit').value)||0,
+    perUserLimit: Number($('edit-task-peruserlimit').value)||1,
+  };
+  const fpOn=$('edit-ft-fixpass').classList.contains('on');
+  const fpTxt=$('edit-ft-fixpass-val').value.trim();
+  upd.featFixedPass = fpOn && fpTxt ? true : null;
+  upd.featFixedPassVal = fpOn && fpTxt ? fpTxt : null;
+  upd.featAutoUname = $('edit-ft-uname').classList.contains('on') ? true : null;
+  upd.feat2FA = $('edit-ft-2fa').classList.contains('on') ? true : null;
+  /* remove null keys */
+  Object.keys(upd).forEach(k=>{ if(upd[k]===null) upd[k]=null; });
+  await db.ref('tasks/'+id).update(upd);
+  toast('টাস্ক আপডেট হয়েছে','success');
+  closeModal('edit-task-modal');
+  renderAdminTasks();
+});
 $('task-add-btn').addEventListener('click', async ()=>{
   const categoryId = $('task-cat-select').value;
   const title = $('task-title-input').value.trim();
@@ -2100,20 +2231,61 @@ document.querySelectorAll('.toggle').forEach(t=>t.addEventListener('click', ()=>
 /* ════════════════════════════════
    USERNAME GENERATOR
    ════════════════════════════════ */
+/* ── ULTRA-RARE USERNAME GENERATOR ── */
+/* Examples: it2_.nabil_72  arnob_vibepro.423  real.rakib_254  edits.shuvo_6 */
 function _genUsername(){
-  const t=Math.floor(Math.random()*3);
-  if(t===0){
-    const fn=['vikas','rajan','amit','rahul','arjun','rohit','ankit','aditya','priya','neha','divya','sandy','kevin','james','emma','noah','ethan','rahim','karim','tasin','nabil','sakib','hasan','farid','siam'];
-    const ln=['smith','jones','sharma','verma','gupta','kumar','singh','patel','khan','mishra','brown','davis','miller','wilson','chowdhury','rahman','hossain','ahmed','akter','begum'];
-    return fn[fn.length*Math.random()|0]+ln[ln.length*Math.random()|0]+(10000+(Math.random()*89999|0));
-  }else if(t===1){
-    const ch='abcdefghijklmnopqrstuvwxyz',len=5+(Math.random()*5|0);
-    let s=''; for(let i=0;i<len;i++) s+=ch[ch.length*Math.random()|0];
-    return s+(100+(Math.random()*9900|0));
-  }else{
-    const w=['cool','fast','pro','mega','ultra','super','star','ace','nova','apex','fire','swift','elite','sharp'];
-    const s=['user','gamer','dev','pro','bd','fx','vip','x'];
-    return w[w.length*Math.random()|0]+s[s.length*Math.random()|0]+(100+(Math.random()*9900|0));
+  const _pick=arr=>arr[Math.floor(Math.random()*arr.length)];
+  const _num=(min,max)=>min+Math.floor(Math.random()*(max-min+1));
+  const _sep=()=>Math.random()<.5?'_':'.';
+
+  const names=['nabil','arnob','rakib','shuvo','rahim','tasin','sakib','rifat','farhan','mehedi',
+    'arif','hasan','karim','siam','nahid','rasel','rony','jibon','munna','prince',
+    'imran','sumon','tuhin','robin','dipu','limon','rubel','jahid','ripon','babu'];
+  const prefixWords=['it','real','edits','vibe','pro','ace','nova','fire','true','pure',
+    'raw','elite','top','ultra','alpha','beta','zap','dark','sharp','flash'];
+  const suffixWords=['vibepro','bd','pro','fx','vip','edit','hub','zone','plus','x',
+    'team','crew','dev','star','acex'];
+  const alphaTag=['XD','BD','PRO','VIP','FX','ACE','YT','HD','GG','RX'];
+
+  /* pick a random number style */
+  const numStyle=Math.floor(Math.random()*4);
+  let numStr;
+  if(numStyle===0) numStr=String(_num(2,9));                    /* single digit: 6 */
+  else if(numStyle===1) numStr=String(_num(10,99));             /* double:       72 */
+  else if(numStyle===2) numStr=String(_num(100,999));           /* triple:       254 */
+  else numStr=String(_num(1000,9999));                          /* quad:         4231 */
+
+  /* sometimes sprinkle an alpha tag into the number part */
+  const withAlpha=Math.random()<.18;
+  const fullNum=withAlpha ? (Math.random()<.5 ? alphaTag[Math.floor(Math.random()*alphaTag.length)]+numStr : numStr+alphaTag[Math.floor(Math.random()*alphaTag.length)]) : numStr;
+
+  /* pick one of 6 pattern templates */
+  const pattern=Math.floor(Math.random()*6);
+  const n=_pick(names);
+  const pw=_pick(prefixWords);
+  const sw=_pick(suffixWords);
+  const s1=_sep(), s2=_sep();
+
+  if(pattern===0){
+    /* it2_.nabil_72 → prefix+num+sep+name+sep+num */
+    const pre=pw+(Math.random()<.5?String(_num(1,9)):'');
+    return pre+s1+n+s2+fullNum;
+  } else if(pattern===1){
+    /* arnob_vibepro.423 → name+sep+suffix+sep+num */
+    return n+s1+sw+s2+fullNum;
+  } else if(pattern===2){
+    /* real.rakib_254 → prefix+sep+name+sep+num */
+    return pw+s1+n+s2+fullNum;
+  } else if(pattern===3){
+    /* edits.shuvo_6 → prefix+sep+name+sep+num */
+    return pw+s1+n+(Math.random()<.5?s2+fullNum:'');
+  } else if(pattern===4){
+    /* sakib_pro.423 → name+sep+suffix+sep+num */
+    return n+s1+_pick(['pro','bd','vip','yt','gx'])+s2+fullNum;
+  } else {
+    /* its.nabil_yt72 → prefix+sep+name+sep+alphaNum */
+    const a=_pick(alphaTag).toLowerCase();
+    return pw+s1+n+s2+a+String(_num(1,999));
   }
 }
 
