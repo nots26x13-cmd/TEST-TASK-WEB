@@ -299,32 +299,54 @@ input::placeholder,textarea::placeholder{color:var(--text-dim2);}
 .empty-note{text-align:center;padding:30px 10px;color:var(--text-dim2);font-size:12.5px;}
 .search-bar{margin-bottom:12px;}
 /* ── FEATURE BOXES (user task modal) ── */
-.feat-box{background:linear-gradient(135deg,rgba(124,92,255,.08),rgba(18,183,158,.06));border:1.5px solid rgba(124,92,255,.2);border-radius:14px;padding:14px;margin-bottom:12px;position:relative;overflow:hidden;}
-.feat-box::after{content:'';position:absolute;top:-30px;right:-20px;width:80px;height:80px;border-radius:50%;background:rgba(124,92,255,.07);filter:blur(16px);pointer-events:none;}
-.feat-label{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.8px;color:var(--violet);margin-bottom:9px;display:flex;align-items:center;gap:5px;}
+.feat-box{background:linear-gradient(135deg,rgba(124,92,255,.10),rgba(18,183,158,.07));border:1.5px solid rgba(124,92,255,.25);border-radius:16px;padding:16px;margin-bottom:12px;position:relative;overflow:hidden;box-shadow:0 4px 18px rgba(124,92,255,.08);}
+.feat-box::after{content:'';position:absolute;top:-30px;right:-20px;width:100px;height:100px;border-radius:50%;background:rgba(124,92,255,.09);filter:blur(20px);pointer-events:none;}
+.feat-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:var(--violet);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.feat-label-badge{background:var(--aurora);color:#fff;font-size:8px;font-weight:800;padding:2px 7px;border-radius:20px;letter-spacing:.5px;}
 .feat-row{display:flex;align-items:center;gap:7px;flex-wrap:nowrap;}
-.feat-val{flex:1;font-family:var(--font-mono);font-size:13.5px;font-weight:700;color:var(--text);word-break:break-all;line-height:1.4;}
-.fbt{flex-shrink:0;height:32px;border-radius:9px;padding:0 11px;font-size:11.5px;font-weight:700;border:1.5px solid var(--border-hi);background:var(--glass);color:var(--text);cursor:pointer;transition:all .14s;}
+.feat-val{flex:1;font-family:var(--font-mono);font-size:14px;font-weight:700;color:var(--text);word-break:break-all;line-height:1.4;background:rgba(20,28,48,.04);border-radius:8px;padding:8px 10px;}
+.fbt{flex-shrink:0;height:34px;border-radius:10px;padding:0 12px;font-size:11.5px;font-weight:700;border:1.5px solid var(--border-hi);background:var(--glass);color:var(--text);cursor:pointer;transition:all .14s;display:flex;align-items:center;gap:5px;}
 .fbt:active{transform:scale(.92);}
-.fbt-copy{background:var(--aurora);color:#fff;border:none;box-shadow:0 2px 10px rgba(124,92,255,.22);}
-.twofa-key-inp{width:100%;border:1.5px solid var(--border);border-radius:10px;padding:11px 13px;font-family:var(--font-mono);font-size:13px;background:var(--elev-1);color:var(--text);margin-bottom:8px;transition:border-color .15s;}
-.twofa-key-inp:focus{border-color:var(--violet);outline:none;}
-.twofa-box{text-align:center;border:1px solid var(--border);border-radius:12px;padding:16px 10px 12px;background:rgba(20,28,48,.03);}
-.twofa-digits{font-family:var(--font-mono);font-size:30px;font-weight:800;letter-spacing:7px;background:var(--aurora);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:3px;}
-.twofa-timer{font-size:10px;color:var(--text-dim2);font-weight:600;margin-bottom:9px;}
+.fbt-refresh{color:var(--violet);border-color:rgba(124,92,255,.3);}
+.fbt-copy{background:var(--aurora);color:#fff;border:none;box-shadow:0 2px 12px rgba(124,92,255,.28);}
+.twofa-key-wrap{position:relative;margin-bottom:8px;}
+.twofa-key-inp{width:100%;border:1.5px solid var(--border);border-radius:11px;padding:12px 14px;font-family:var(--font-mono);font-size:13px;background:var(--elev-1);color:var(--text);transition:border-color .15s;}
+.twofa-key-inp:focus{border-color:var(--violet);outline:none;box-shadow:0 0 0 3px rgba(124,92,255,.12);}
+.twofa-gen-btn{width:100%;border-radius:10px;padding:11px;font-size:13px;font-weight:700;background:linear-gradient(135deg,rgba(124,92,255,.15),rgba(18,183,158,.12));border:1.5px solid rgba(124,92,255,.3);color:var(--violet);cursor:pointer;transition:all .15s;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:7px;}
+.twofa-gen-btn:active{transform:scale(.97);}
+.twofa-box{text-align:center;border:1.5px solid rgba(124,92,255,.2);border-radius:14px;padding:18px 12px 14px;background:linear-gradient(135deg,rgba(124,92,255,.06),rgba(18,183,158,.04));}
+.twofa-digits{font-family:var(--font-mono);font-size:34px;font-weight:800;letter-spacing:9px;background:var(--aurora);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:4px;}
+.twofa-timer{font-size:10.5px;color:var(--text-dim2);font-weight:600;margin-bottom:10px;display:flex;align-items:center;justify-content:center;gap:5px;}
+.twofa-timer-bar{height:3px;border-radius:3px;background:var(--track);overflow:hidden;margin:4px 0 10px;}
+.twofa-timer-fill{height:100%;background:var(--aurora);border-radius:3px;transition:width 1s linear;}
 /* ── FEATURE TOGGLE GROUP (admin task form) ── */
-.ftg{border:1.5px solid rgba(124,92,255,.18);border-radius:14px;padding:14px;margin-bottom:8px;background:var(--glass);position:relative;overflow:hidden;}
-.ftg::before{content:'';position:absolute;top:0;left:0;right:0;height:2.5px;background:var(--aurora);border-radius:14px 14px 0 0;}
-.ftg-title{font-size:11.5px;font-weight:800;letter-spacing:.4px;color:var(--violet);margin-bottom:12px;display:flex;align-items:center;gap:5px;}
-.ftr{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
-.ftr:first-of-type{padding-top:0;}
+.ftg{border:1.5px solid rgba(124,92,255,.20);border-radius:16px;padding:16px;margin-bottom:10px;background:linear-gradient(135deg,rgba(124,92,255,.05),rgba(18,183,158,.04));position:relative;overflow:hidden;}
+.ftg::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--aurora);border-radius:16px 16px 0 0;}
+.ftg-title{font-size:12px;font-weight:800;letter-spacing:.4px;color:var(--violet);margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.ftg-title span{background:var(--aurora);color:#fff;font-size:9px;padding:3px 8px;border-radius:20px;font-weight:800;letter-spacing:.5px;}
+.ftr{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);}
 .ftr:last-of-type{border-bottom:none;padding-bottom:0;}
 .ftr-info{flex:1;}
-.ftr-title{font-size:12px;font-weight:800;color:var(--text);letter-spacing:.25px;}
-.ftr-sub{font-size:10px;color:var(--text-dim2);margin-top:2px;line-height:1.4;}
+.ftr-title{font-size:12.5px;font-weight:800;color:var(--text);letter-spacing:.2px;}
+.ftr-sub{font-size:10px;color:var(--text-dim2);margin-top:3px;line-height:1.4;}
+.ftr-expanded{padding:12px 0 2px;display:none;}
+.ftr-expanded.visible{display:block;animation:fadeIn .2s ease both;}
+/* fixpass custom input box */
+.fixpass-input-wrap{background:rgba(20,28,48,.04);border:1.5px dashed rgba(124,92,255,.3);border-radius:11px;padding:12px;margin-top:2px;}
+.fixpass-input-wrap label{font-size:10px;font-weight:700;color:var(--violet);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px;}
 /* Polish */
 .task-card{transition:transform .14s,box-shadow .14s;}
 .task-card:hover{transform:translateY(-1px);box-shadow:var(--shadow-md);}
+/* improved modal */
+.modal-sheet::-webkit-scrollbar{width:3px;}
+.modal-sheet::-webkit-scrollbar-track{background:transparent;}
+.modal-sheet::-webkit-scrollbar-thumb{background:var(--border-hi);border-radius:3px;}
+/* reward badge in task modal */
+.reward-badge{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,rgba(18,183,158,.12),rgba(76,141,255,.1));border:1px solid rgba(18,183,158,.3);border-radius:10px;padding:6px 12px;font-family:var(--font-mono);font-size:13px;font-weight:800;color:var(--teal);}
+/* divider with text */
+.sect-divider{display:flex;align-items:center;gap:10px;margin:14px 0 12px;}
+.sect-divider::before,.sect-divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.sect-divider span{font-size:10px;font-weight:700;color:var(--text-dim2);text-transform:uppercase;letter-spacing:1px;white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -641,38 +663,46 @@ input::placeholder,textarea::placeholder{color:var(--text-dim2);}
         <div class="field"><label>প্রতি টাস্কে রিওয়ার্ড (৳)</label><input id="task-reward-input" type="number" placeholder="2.00"></div>
         <div class="field"><label>সর্বমোট সর্বোচ্চ কতবার সম্পন্ন হবে (সব ইউজার মিলিয়ে, 0 = আনলিমিটেড)</label><input id="task-limit-input" type="number" placeholder="0"></div>
         <div class="field"><label>একজন ইউজার সর্বোচ্চ কতবার করতে পারবে (0 = আনলিমিটেড, খালি রাখলে ১ বার)</label><input id="task-peruserlimit-input" type="number" placeholder="1"></div>
-        <div id="feat-wrap" class="ftg hidden">
-          <div class="ftg-title">⚡ Form Features</div>
 
+        <!-- ⚡ TASK FEATURES — সবসময় দৃশ্যমান -->
+        <div id="feat-wrap" class="ftg">
+          <div class="ftg-title">⚡ Task Features <span>PRO</span></div>
+
+          <!-- 1. FIXED PASSWORD -->
           <div class="ftr">
             <div class="ftr-info">
               <div class="ftr-title">🔐 REQUIRE FIXED PASSWORD</div>
-              <div class="ftr-sub">User form-এ একটি নির্দিষ্ট password দেখাবে — copy করা যাবে</div>
+              <div class="ftr-sub">Task করার সময় user একটি নির্দিষ্ট text/password দেখবে ও copy করতে পারবে</div>
             </div>
             <div class="toggle" id="ft-fixpass"></div>
           </div>
-          <div class="field hidden" id="ft-fixpass-field" style="margin:10px 0 2px;">
-            <label>Password / Text</label>
-            <input id="ft-fixpass-val" placeholder="User যে text টি copy করবে সেটা লিখুন">
+          <div class="ftr-expanded" id="ft-fixpass-field">
+            <div class="fixpass-input-wrap">
+              <label>🔑 Password / Secret Text</label>
+              <input id="ft-fixpass-val" placeholder="User যে text টি copy করবে সেটা লিখুন" style="background:var(--elev-1);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font-size:13px;width:100%;">
+            </div>
           </div>
 
+          <!-- 2. AUTO USERNAME SUGGEST -->
           <div class="ftr">
             <div class="ftr-info">
               <div class="ftr-title">👤 AUTO USERNAME SUGGEST</div>
-              <div class="ftr-sub">User form-এ auto username suggest করবে, refresh ও copy করা যাবে</div>
+              <div class="ftr-sub">Task form-এ auto username suggest করবে — refresh ও copy করা যাবে</div>
             </div>
             <div class="toggle" id="ft-uname"></div>
           </div>
 
+          <!-- 3. 2FA FEATURE -->
           <div class="ftr">
             <div class="ftr-info">
               <div class="ftr-title">🔑 2FA FEATURE</div>
-              <div class="ftr-sub">User তার 2FA Secret Key দিলে auto TOTP code generate হবে</div>
+              <div class="ftr-sub">User তার 2FA Secret Key দিলে auto TOTP code generate করে দেবে</div>
             </div>
             <div class="toggle" id="ft-2fa"></div>
           </div>
         </div>
-        <button class="btn btn-primary btn-block" id="task-add-btn">+ Add Task</button>
+
+        <button class="btn btn-primary btn-block" id="task-add-btn" style="margin-top:4px;">✚ Task যোগ করুন</button>
       </div>
       <div id="task-admin-list"></div>
     </div>
