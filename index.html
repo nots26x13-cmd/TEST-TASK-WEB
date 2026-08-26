@@ -2021,7 +2021,7 @@ $('task-add-btn').addEventListener('click', async ()=>{
   $('task-fields-builder-wrap').classList.add('hidden');
   $('feat-wrap').classList.add('hidden');
   ['ft-fixpass','ft-uname','ft-2fa'].forEach(id=>$(id).classList.remove('on'));
-  $('ft-fixpass-field').classList.add('hidden');
+  $('ft-fixpass-field').classList.remove('visible');
   $('ft-fixpass-val').value='';
   $('task-type-select').value = 'join';
   renderAdminTasks();
@@ -2473,7 +2473,7 @@ async function _genTOTP(secret){
   if(btn) btn.addEventListener('click',()=>{
     setTimeout(()=>{
       const w=document.getElementById('ft-fixpass-field');
-      if(w) w.classList.toggle('hidden',!btn.classList.contains('on'));
+      if(w) w.classList.toggle('visible', btn.classList.contains('on'));
     },0);
   });
 })();
