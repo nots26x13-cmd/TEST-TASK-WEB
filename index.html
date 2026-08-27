@@ -379,6 +379,14 @@ input::placeholder,textarea::placeholder{color:var(--text-dim2);}
 .sub-status-badge.approved{background:var(--success-bg);color:var(--success);}
 .sub-status-badge.rejected{background:var(--danger-bg);color:var(--danger);}
 .sub-proc-note{padding:8px 14px 12px;font-size:10.5px;color:var(--text-dim2);text-align:center;}
+/* ── SUBMISSION CATEGORY GRID ── */
+.sub-cat-btn{background:var(--glass);border:1.5px solid var(--border);border-radius:var(--radius-md);padding:13px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .15s;margin-bottom:8px;width:100%;text-align:left;}
+.sub-cat-btn:active{transform:scale(.98);background:var(--glass-hi);}
+.sub-cat-icon{width:38px;height:38px;border-radius:11px;background:var(--aurora-soft);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.sub-cat-img{width:38px;height:38px;border-radius:11px;object-fit:cover;flex-shrink:0;}
+.sub-cat-name{font-size:13px;font-weight:700;flex:1;}
+.sub-cat-badge{background:var(--warning-bg);color:var(--gold);font-size:10px;font-weight:800;padding:3px 9px;border-radius:10px;border:1px solid rgba(214,144,14,.3);white-space:nowrap;}
+.sub-cat-arrow{color:var(--text-dim2);font-size:16px;flex-shrink:0;}
 </style>
 </head>
 <body>
@@ -786,8 +794,20 @@ input::placeholder,textarea::placeholder{color:var(--text-dim2);}
     </div>
 
     <div class="a-screen" id="a-submissions">
-      <div class="search-bar"><select id="submission-filter-select"><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="all">All</option></select></div>
-      <div id="submission-admin-list"></div>
+      <!-- View 1: Category Selection -->
+      <div id="sub-cat-view">
+        <div class="a-item-title" style="margin-bottom:12px;">📁 ক্যাটাগরি বেছে নিন</div>
+        <div id="sub-cat-grid"></div>
+      </div>
+      <!-- View 2: Submission List -->
+      <div id="sub-list-view" class="hidden">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+          <button class="btn btn-ghost btn-sm" id="sub-back-btn">← ফিরে যান</button>
+          <div class="a-item-title" id="sub-view-title" style="font-size:14px;"></div>
+        </div>
+        <div class="search-bar"><select id="submission-filter-select"><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="all">All</option></select></div>
+        <div id="submission-admin-list"></div>
+      </div>
     </div>
 
     <div class="a-screen" id="a-join">
@@ -1776,7 +1796,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 /* ---------------- ADMIN PANEL ---------------- */
 function renderAdminAll(){
   renderAdminDash(); renderAdminCats(); renderAdminTasks(); renderAdminJoin();
-  renderAdminWithdrawals(); renderAdminUsers(); renderAdminBanners(); renderAdminSubmissions();
+  renderAdminWithdrawals(); renderAdminUsers(); renderAdminBanners(); renderSubmissionCats();
 }
 
 /* dashboard */
@@ -2039,13 +2059,93 @@ function _timeAgo(ts){
 }
 function _isUrl(v){ try{ return /^https?:\/\//.test(v.trim()); }catch(e){ return false; } }
 
+/* ════════════════════════════════
+   SUBMISSION CATEGORY VIEW
+   ════════════════════════════════ */
+let _subActiveCatId = null;
+
+async function renderSubmissionCats(){
+  /* reset to cat view */
+  _subActiveCatId = null;
+  $('sub-cat-view').classList.remove('hidden');
+  $('sub-list-view').classList.add('hidden');
+
+  const snap = await db.ref('taskSubmissions').once('value');
+  const allSubs = Object.values(snap.val()||{});
+
+  /* pending count per task */
+  const pendPerTask = {};
+  allSubs.forEach(s=>{ if(s.status==='pending') pendPerTask[s.taskId]=(pendPerTask[s.taskId]||0)+1; });
+
+  /* pending count per category */
+  const pendPerCat = {};
+  const totalPerCat = {};
+  allSubs.forEach(s=>{
+    const t = TASKS[s.taskId]; if(!t) return;
+    totalPerCat[t.categoryId]=(totalPerCat[t.categoryId]||0)+1;
+  });
+  Object.entries(TASKS).forEach(([tid,t])=>{
+    if(pendPerTask[tid]) pendPerCat[t.categoryId]=(pendPerCat[t.categoryId]||0)+pendPerTask[tid];
+  });
+
+  const cats = Object.entries(CATEGORIES);
+  if(!cats.length){ $('sub-cat-grid').innerHTML='<div class="empty-note">কোনো ক্যাটাগরি নেই</div>'; return; }
+
+  $('sub-cat-grid').innerHTML = cats.map(([id,c])=>{
+    const pend = pendPerCat[id]||0;
+    const total = totalPerCat[id]||0;
+    const iconHtml = c.logoUrl
+      ? `<img class="sub-cat-img" src="${esc(c.logoUrl)}">`
+      : `<div class="sub-cat-icon">${esc(c.icon||'📋')}</div>`;
+    return `<button class="sub-cat-btn" data-subcatid="${id}">
+      ${iconHtml}
+      <div>
+        <div class="sub-cat-name">${esc(c.name)}</div>
+        <div style="font-size:10px;color:var(--text-dim2);margin-top:2px;">${total} submission${total!==1?'s':''}</div>
+      </div>
+      ${pend?`<span class="sub-cat-badge">⏳ ${pend} Pending</span>`:''}
+      <span class="sub-cat-arrow">›</span>
+    </button>`;
+  }).join('');
+
+  document.querySelectorAll('[data-subcatid]').forEach(btn=>btn.addEventListener('click',()=>{
+    _subActiveCatId = btn.dataset.subcatid;
+    const cat = CATEGORIES[_subActiveCatId]||{};
+    $('sub-view-title').textContent = (cat.icon||'')+'  '+(cat.name||'');
+    $('sub-cat-view').classList.add('hidden');
+    $('sub-list-view').classList.remove('hidden');
+    $('submission-filter-select').value='pending';
+    renderAdminSubmissions();
+  }));
+}
+
+$('sub-back-btn').addEventListener('click', ()=>renderSubmissionCats());
 $('submission-filter-select').addEventListener('change', renderAdminSubmissions);
+
+/* ── Event delegation — no per-button listeners needed ── */
+$('submission-admin-list').addEventListener('click', e=>{
+  const ab = e.target.closest('[data-subapprove]');
+  const rb = e.target.closest('[data-subreject]');
+  if(ab) processSubmission(ab.dataset.subapprove,'approved',ab);
+  if(rb) processSubmission(rb.dataset.subreject,'rejected',rb);
+});
+
 async function renderAdminSubmissions(){
   const snap = await db.ref('taskSubmissions').once('value');
   const obj = snap.val()||{};
   const filter = $('submission-filter-select').value;
+
+  /* task IDs belonging to active category */
+  const catTaskIds = _subActiveCatId
+    ? new Set(Object.entries(TASKS).filter(([,t])=>t.categoryId===_subActiveCatId).map(([id])=>id))
+    : null;
+
   const arr = Object.entries(obj)
-    .filter(([id,s])=>filter==='all'||s.status===filter)
+    .filter(([,s])=>{
+      const statusOk = filter==='all'||s.status===filter;
+      const catOk = !catTaskIds||catTaskIds.has(s.taskId);
+      return statusOk && catOk;
+    })
     .sort((a,b)=>(b[1].submittedAt||0)-(a[1].submittedAt||0));
 
   if(!arr.length){
@@ -2054,35 +2154,30 @@ async function renderAdminSubmissions(){
   }
 
   const statusLabel={pending:'⏳ Pending',approved:'✅ Approved',rejected:'❌ Rejected'};
-  const taskCatName=id=>{ const t=TASKS[id]; if(!t) return ''; const c=CATEGORIES[t.categoryId]; return c?c.name:''; };
 
   $('submission-admin-list').innerHTML = arr.map(([id,s])=>{
-    const initials = (s.userName||'U').trim().replace(/[^a-zA-Z\u0980-\u09FF\s]/g,'').split(/\s+/).map(w=>w[0]||'').join('').slice(0,2).toUpperCase()||'U';
-    const tgHandle = s.userTgUsername ? `<span class="tg-handle">@${esc(s.userTgUsername)}</span>` : '';
-    const catName = taskCatName(s.taskId);
-    const taskTitle = s.taskTitle || (TASKS[s.taskId]&&TASKS[s.taskId].title) || '—';
+    const taskObj = TASKS[s.taskId];
+    const catObj  = taskObj ? CATEGORIES[taskObj.categoryId] : null;
+    const catName = catObj ? catObj.name : '';
+    const taskTitle = s.taskTitle||(taskObj&&taskObj.title)||'—';
 
-    const fieldsHtml = (s.fieldsMeta||[]).map(f=>{
-      const val = (s.data&&s.data[f.id])||'—';
-      const valHtml = _isUrl(val)
-        ? `<a href="${esc(val)}" target="_blank" rel="noopener">${esc(val)}</a>`
-        : esc(val);
-      return `<div class="sub-field-row">
-        <div class="sub-field-label">${esc(f.label)}</div>
-        <div class="sub-field-val">${valHtml}</div>
-      </div>`;
+    const initials = (s.userName||'U').trim().replace(/[^a-zA-Z\u0980-\u09FF\s]/g,'')
+      .split(/\s+/).map(w=>w[0]||'').join('').slice(0,2).toUpperCase()||'U';
+    const tgHandle = s.userTgUsername?`<span class="tg-handle">@${esc(s.userTgUsername)}</span>`:'';
+
+    const fieldsHtml=(s.fieldsMeta||[]).map(f=>{
+      const val=(s.data&&s.data[f.id])||'—';
+      const valHtml=_isUrl(val)?`<a href="${esc(val)}" target="_blank" rel="noopener">${esc(val)}</a>`:esc(val);
+      return `<div class="sub-field-row"><div class="sub-field-label">${esc(f.label)}</div><div class="sub-field-val">${valHtml}</div></div>`;
     }).join('');
 
-    const statusDot = {pending:'🟡',approved:'🟢',rejected:'🔴'}[s.status]||'⚪';
+    const statusDot={pending:'🟡',approved:'🟢',rejected:'🔴'}[s.status]||'⚪';
     return `<div class="sub-card ${s.status}-card" data-sub-id="${id}">
       <div class="sub-card-head">
         <div class="sub-ava">${initials}</div>
         <div class="sub-user-info">
           <div class="sub-user-name">${esc(s.userName||'Unknown')}</div>
-          <div class="sub-user-meta">
-            ${tgHandle}
-            <span class="uid-chip">ID: ${esc(String(s.userId||''))} </span>
-          </div>
+          <div class="sub-user-meta">${tgHandle}<span class="uid-chip">ID: ${esc(String(s.userId||''))}</span></div>
         </div>
         <div class="sub-status-badge ${s.status}">${statusDot} ${statusLabel[s.status]||s.status}</div>
       </div>
@@ -2101,54 +2196,43 @@ async function renderAdminSubmissions(){
       }
     </div>`;
   }).join('');
-
-  document.querySelectorAll('[data-subapprove]').forEach(b=>{
-    b.addEventListener('click', ()=>processSubmission(b.dataset.subapprove,'approved',b));
-  });
-  document.querySelectorAll('[data-subreject]').forEach(b=>{
-    b.addEventListener('click', ()=>processSubmission(b.dataset.subreject,'rejected',b));
-  });
 }
-/* in-memory lock prevents same submission being double-processed in this session */
+
+/* ════════════════════════════════
+   PROCESS SUBMISSION (FIXED)
+   ════════════════════════════════ */
 const _processingIds = new Set();
 async function processSubmission(id, status, btn){
   if(_processingIds.has(id)){ toast('ইতিমধ্যে প্রসেস হচ্ছে, অপেক্ষা করুন…','error'); return; }
   _processingIds.add(id);
-  /* disable all approve/reject buttons for this card immediately */
+
   const card = btn && btn.closest('.sub-card');
   const cardBtns = card ? card.querySelectorAll('.sub-btn') : [];
   cardBtns.forEach(b=>{ b.disabled=true; });
   if(btn){ btn.textContent = status==='approved'?'⏳ প্রসেস হচ্ছে…':'⏳ বাতিল হচ্ছে…'; }
 
   try{
-    /* ── ATOMIC LOCK via Firebase transaction ──
-       Only transitions from 'pending' → approved/rejected.
-       If another click already moved it out of 'pending', the transaction aborts. */
-    let aborted = false;
-    await db.ref('taskSubmissions/'+id+'/status').transaction(cur => {
-      if(cur !== 'pending'){ aborted = true; return undefined; /* abort */ }
-      return status;
-    });
-
-    if(aborted){
+    /* ── read-then-write (avoids Firebase transaction null-abort bug) ── */
+    const statusSnap = await db.ref('taskSubmissions/'+id+'/status').once('value');
+    const curStatus = statusSnap.val();
+    if(curStatus !== 'pending'){
       toast('এই সাবমিশন ইতিমধ্যে প্রসেস হয়ে গেছে','error');
-      _processingIds.delete(id);
       renderAdminSubmissions();
       return;
     }
 
-    const snap = await db.ref('taskSubmissions/'+id).once('value');
-    const s = snap.val(); if(!s){ _processingIds.delete(id); return; }
-    await db.ref('taskSubmissions/'+id).update({ processedAt: Date.now() });
+    /* write status + timestamp atomically */
+    await db.ref('taskSubmissions/'+id).update({ status, processedAt: Date.now() });
 
-    /* clean up pending marker — handle both single-key and sub-keyed (unlimited) formats */
+    const snap = await db.ref('taskSubmissions/'+id).once('value');
+    const s = snap.val(); if(!s) return;
+
+    /* clean up pending marker — handles single-key + unlimited sub-key formats */
     const pendRef = db.ref('users/'+s.userId+'/pendingSubmissions/'+s.taskId);
     const pendSnap = await pendRef.once('value');
     const pendVal = pendSnap.val();
     if(pendVal && typeof pendVal === 'object'){
-      /* unlimited format: sub-keys → remove just this submission's key */
       if(pendVal[id]) await pendRef.child(id).remove();
-      /* if no more sub-keys, remove the parent */
       const remaining = Object.keys(pendVal).filter(k=>k!==id);
       if(!remaining.length) await pendRef.remove();
     } else {
@@ -2156,18 +2240,25 @@ async function processSubmission(id, status, btn){
     }
 
     if(status==='approved'){
-      const t = TASKS[s.taskId];
+      /* fetch task from Firebase if not cached in TASKS */
+      let t = TASKS[s.taskId];
+      if(!t && s.taskId){
+        const tSnap = await db.ref('tasks/'+s.taskId).once('value');
+        t = tSnap.val();
+      }
       if(t) await awardTaskReward(s.userId, s.taskId, t);
     } else if(status==='rejected' && Array.isArray(s.emailHashes)){
       for(const hash of s.emailHashes){ await db.ref('usedEmails/'+hash).remove(); }
     }
 
     toast(status==='approved'?'✅ অনুমোদিত ও রিওয়ার্ড দেওয়া হয়েছে':'❌ বাতিল করা হয়েছে','success');
-    renderAdminSubmissions(); renderAdminDash();
+    renderAdminSubmissions();
+    renderAdminDash();
   } catch(err){
-    console.error(err);
+    console.error('processSubmission error:', err);
     toast('সমস্যা হয়েছে, আবার চেষ্টা করুন','error');
     cardBtns.forEach(b=>{ b.disabled=false; });
+    if(btn) btn.textContent = status==='approved'?'✔ Approve':'✕ Reject';
   } finally {
     _processingIds.delete(id);
   }
