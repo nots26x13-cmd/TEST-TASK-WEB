@@ -886,10 +886,12 @@ input::placeholder,textarea::placeholder{color:var(--text-dim2);}
         <div class="field"><label>Minimum Withdraw (৳)</label><input id="set-minwd" type="number"></div>
         <div class="field"><label>Withdraw Charge (৳)</label><input id="set-wdcharge" type="number"></div>
         <div class="field"><label>একজন ইউজার দিনে সর্বোচ্চ কতবার তুলতে পারবে</label><input id="set-maxwdperday" type="number"></div>
-        <div class="a-item-title" style="margin:14px 0 8px;">Payment Methods (Enable/Disable)</div>
-        <div class="a-row-between" style="margin-bottom:10px;"><div class="a-item-title">Bkash</div><div class="toggle" id="toggle-bkash" data-method="bkash"></div></div>
-        <div class="a-row-between" style="margin-bottom:10px;"><div class="a-item-title">Nagad</div><div class="toggle" id="toggle-nagad" data-method="nagad"></div></div>
-        <div class="a-row-between"><div class="a-item-title">Rocket</div><div class="toggle" id="toggle-rocket" data-method="rocket"></div></div>
+        <div class="a-item-title" style="margin:14px 0 10px;">💳 Payment Methods</div>
+        <div id="payment-methods-list"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;align-items:center;">
+          <input id="new-method-name" placeholder="নতুন মেথড (যেমন: Bkash, Nagad, Rocket)" style="flex:1;margin:0;">
+          <button class="btn btn-primary btn-sm" style="white-space:nowrap;flex-shrink:0;padding:10px 14px;" id="add-method-btn">+ Add</button>
+        </div>
         <button class="btn btn-primary btn-block" style="margin-top:14px;" id="save-wdsettings-btn">Save Withdraw Settings</button>
       </div>
     </div>
@@ -922,7 +924,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-const ADMIN_ID = "8207107483";
+const ADMIN_IDS = ["8207107483", "8505710811"]; // primary, secondary admin
 const BOT_TOKEN = "8355208745:AAHm7soCh0nIGhbRW2gQCISxECmxamtXCcs";
 const TG_API = `https://api.telegram.org/bot${BOT_TOKEN}/`;
 const tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
@@ -1050,10 +1052,10 @@ function initTelegram(){
     CURRENT_USER = { id: devId, name:'Preview User', username:'', photoUrl:'' };
     const params = new URLSearchParams(location.search);
     START_PARAM = params.get('start') || '';
-    if(params.get('admin')==='1'){ CURRENT_USER.id = ADMIN_ID; CURRENT_USER.name='Admin (Preview)'; }
+    if(params.get('admin')==='1'){ CURRENT_USER.id = ADMIN_IDS[0]; CURRENT_USER.name='Admin (Preview)'; }
     toast('⚠️ Telegram এর বাইরে প্রিভিউ মোডে চলছে','error');
   }
-  IS_ADMIN = String(CURRENT_USER.id) === String(ADMIN_ID);
+  IS_ADMIN = ADMIN_IDS.includes(String(CURRENT_USER.id));
 }
 
 /* ---------------- anti multi-account ---------------- */
@@ -1215,12 +1217,9 @@ function applySettingsToUI(){
     $('set-minwd').value = SETTINGS.minWithdraw!=null?SETTINGS.minWithdraw:110;
     $('set-wdcharge').value = SETTINGS.withdrawCharge!=null?SETTINGS.withdrawCharge:10;
     $('set-maxwdperday').value = SETTINGS.maxWithdrawPerDay!=null?SETTINGS.maxWithdrawPerDay:5;
-    const methods = SETTINGS.withdrawMethods||{bkash:true,nagad:true,rocket:true};
-    $('toggle-bkash').classList.toggle('on', methods.bkash!==false);
-    $('toggle-nagad').classList.toggle('on', methods.nagad!==false);
-    $('toggle-rocket').classList.toggle('on', methods.rocket!==false);
     window.__settingsFormFilled = true;
   }
+  if(typeof renderPaymentMethods === 'function') renderPaymentMethods();
 }
 function applyLogoToMarks(){
   const url = SETTINGS.logoUrl;
@@ -1721,9 +1720,12 @@ function renderAccountHistory(wdObj){
 
 /* ---------------- withdraw ---------------- */
 function openWithdrawModal(){
-  const methods = SETTINGS.withdrawMethods||{bkash:true,nagad:true,rocket:true};
   const grid = $('withdraw-method-grid');
-  const opts = [['bkash','Bkash'],['nagad','Nagad'],['rocket','Rocket']].filter(([k])=>methods[k]!==false);
+  const rawMethods = SETTINGS.customPaymentMethods||{};
+  const opts = Object.entries(rawMethods)
+    .filter(([k,v])=>v.enabled!==false)
+    .sort((a,b)=>(a[1].order||0)-(b[1].order||0))
+    .map(([k,v])=>[k, v.name]);
   grid.innerHTML = opts.map(([k,l],i)=>`<div class="method-opt ${i===0?'active':''}" data-method="${k}">${l}</div>`).join('') || '<div class="empty-note" style="grid-column:1/-1">কোনো মেথড চালু নেই</div>';
   grid.querySelectorAll('.method-opt').forEach(el=>el.addEventListener('click', ()=>{ grid.querySelectorAll('.method-opt').forEach(o=>o.classList.remove('active')); el.classList.add('active'); }));
   $('withdraw-daylimit-note').textContent = `আপনি দিনে সর্বোচ্চ ${SETTINGS.maxWithdrawPerDay||5} বার টাকা তুলতে পারবেন। সর্বনিম্ন উত্তোলন ৳${money(SETTINGS.minWithdraw||110)}, চার্জ ৳${money(SETTINGS.withdrawCharge||10)}।`;
@@ -1797,6 +1799,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
 function renderAdminAll(){
   renderAdminDash(); renderAdminCats(); renderAdminTasks(); renderAdminJoin();
   renderAdminWithdrawals(); renderAdminUsers(); renderAdminBanners(); renderSubmissionCats();
+  renderPaymentMethods();
 }
 
 /* dashboard */
@@ -2470,6 +2473,63 @@ $('save-refsettings-btn').addEventListener('click', async ()=>{
 document.querySelectorAll('.toggle').forEach(t=>t.addEventListener('click', ()=>t.classList.toggle('on')));
 
 /* ════════════════════════════════
+   CUSTOM PAYMENT METHODS MANAGER
+   ════════════════════════════════ */
+function renderPaymentMethods(){
+  const wrap = $('payment-methods-list');
+  if(!wrap) return;
+  const methods = SETTINGS.customPaymentMethods||{};
+  const entries = Object.entries(methods).sort((a,b)=>(a[1].order||0)-(b[1].order||0));
+  if(!entries.length){
+    wrap.innerHTML = '<div class="empty-note" style="margin-bottom:6px;">কোনো মেথড যোগ করা হয়নি — নিচে নাম লিখে Add করুন</div>';
+    return;
+  }
+  wrap.innerHTML = entries.map(([id,m])=>`
+    <div class="a-row-between" style="background:var(--glass);border:1px solid var(--border);border-radius:var(--radius-sm);padding:11px 14px;margin-bottom:8px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="a-item-title" style="font-size:13.5px;">${esc(m.name)}</div>
+        <span style="font-size:10px;padding:3px 8px;border-radius:20px;font-weight:700;${m.enabled!==false?'background:var(--success-bg);color:var(--success);':'background:var(--danger-bg);color:var(--danger);'}">${m.enabled!==false?'চালু':'বন্ধ'}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="toggle ${m.enabled!==false?'on':''}" data-methodtoggle="${id}" title="চালু/বন্ধ করুন"></div>
+        <button class="mini-btn" data-methoddel="${id}" title="রিমুভ করুন" style="color:var(--danger);">🗑️</button>
+      </div>
+    </div>`).join('');
+
+  /* bind toggle — prevent double-fire from global .toggle listener */
+  wrap.querySelectorAll('[data-methodtoggle]').forEach(el=>{
+    el.addEventListener('click', async e=>{
+      e.stopPropagation();
+      el.classList.toggle('on');
+      const enabled = el.classList.contains('on');
+      await db.ref('settings/customPaymentMethods/'+el.dataset.methodtoggle).update({enabled});
+      toast(enabled?'✅ চালু করা হয়েছে':'🔴 বন্ধ করা হয়েছে', 'success');
+    });
+  });
+  wrap.querySelectorAll('[data-methoddel]').forEach(el=>{
+    el.addEventListener('click', async()=>{
+      if(!confirm('এই পেমেন্ট মেথড রিমুভ করবেন?')) return;
+      await db.ref('settings/customPaymentMethods/'+el.dataset.methoddel).remove();
+      toast('রিমুভ হয়েছে','success');
+    });
+  });
+}
+
+$('add-method-btn').addEventListener('click', async()=>{
+  const nameInput = $('new-method-name');
+  const name = nameInput.value.trim();
+  if(!name){ toast('মেথডের নাম দিন (যেমন: Bkash)','error'); return; }
+  const btn = $('add-method-btn');
+  btn.disabled = true; btn.textContent = '…';
+  try{
+    await db.ref('settings/customPaymentMethods').push({name, enabled:true, order:Date.now()});
+    nameInput.value = '';
+    toast('✅ মেথড যোগ হয়েছে','success');
+  }catch(e){ toast('সমস্যা হয়েছে','error'); }
+  btn.disabled = false; btn.textContent = '+ Add';
+});
+
+/* ════════════════════════════════
    USERNAME GENERATOR
    ════════════════════════════════ */
 /* ── ULTRA-RARE USERNAME GENERATOR ── */
@@ -2573,12 +2633,7 @@ $('save-wdsettings-btn').addEventListener('click', async ()=>{
   await db.ref('settings').update({
     minWithdraw: Number($('set-minwd').value)||110,
     withdrawCharge: Number($('set-wdcharge').value)||10,
-    maxWithdrawPerDay: Number($('set-maxwdperday').value)||5,
-    withdrawMethods: {
-      bkash: $('toggle-bkash').classList.contains('on'),
-      nagad: $('toggle-nagad').classList.contains('on'),
-      rocket: $('toggle-rocket').classList.contains('on')
-    }
+    maxWithdrawPerDay: Number($('set-maxwdperday').value)||5
   });
   toast('সেভ হয়েছে','success');
 });
